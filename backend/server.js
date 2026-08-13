@@ -12,16 +12,28 @@ import applicationRouter from "./routes/application.routes.js";
 import savedRouter from "./routes/saved.routes.js";
 import inquiryRouter from "./routes/inquiry.routes.js";
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 const app = express();
 
 connectDB();
+
+// Validate important environment variables. In production, fail fast if missing.
+const requiredEnv = ["MONGO_URI", "JWT_SECRET"];
+const missingEnv = requiredEnv.filter((k) => !process.env[k]);
+if (missingEnv.length) {
+  if (process.env.NODE_ENV === "production") {
+    console.error("Missing required environment variables:", missingEnv.join(", "));
+    process.exit(1);
+  } else {
+    console.warn("Warning - missing environment variables:", missingEnv.join(", ")); // warn in development
+  }
+}
 //middleware
 app.use(express.json());
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174", "https://jobportal-two-lemon.vercel.app/"],
+    origin: ["http://localhost:5173", "http://localhost:5174", "https://jobportal-two-lemon.vercel.app"],
     credentials: true,
   })
 );

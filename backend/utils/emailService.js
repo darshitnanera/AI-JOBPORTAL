@@ -1,36 +1,39 @@
+import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY?.trim();
 const SENDER_EMAIL = process.env.EMAIL_USER;
 
-// Reusable email sender function
+// Reusable email sender function (using axios for compatibility across Node versions)
 const sendEmail = async ({ to, subject, htmlContent }) => {
     try {
         if (!BREVO_API_KEY || !SENDER_EMAIL) {
             throw new Error("Email configuration missing (BREVO_API_KEY or EMAIL_USER)");
         }
 
-        const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-            method: "POST",
-            headers: {
-                "api-key": BREVO_API_KEY,
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            body: JSON.stringify({
+        const response = await axios.post(
+            "https://api.brevo.com/v3/smtp/email",
+            {
                 sender: { name: "JobPortal", email: SENDER_EMAIL },
                 to,
                 subject,
                 htmlContent,
-            }),
-        });
+            },
+            {
+                headers: {
+                    "api-key": BREVO_API_KEY,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+            }
+        );
 
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || "Brevo API Error");
-        return result;
+        return response.data;
     } catch (error) {
-        console.error(`Email Error [${subject}]:`, error.message);
+        // Normalize axios / fetch style errors
+        const errMsg = error?.response?.data?.message || error.message || "Brevo API Error";
+        console.error(`Email Error [${subject}]:`, errMsg);
         throw error;
     }
 };
