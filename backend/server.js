@@ -31,12 +31,22 @@ if (missingEnv.length) {
 //middleware
 app.use(express.json());
 
+// Configure CORS using an environment-driven allowlist. Set CORS_ORIGINS as a comma-separated list in production (e.g. in Render/Railway).
+const defaultOrigins = "http://localhost:5173,http://localhost:5174,https://jobportal-issmtuopx-darshitnanera544-4827s-projects.vercel.app,https://ai-jobportal-71nn.vercel.app";
+const allowedOrigins = (process.env.CORS_ORIGINS || defaultOrigins).split(",").map((s) => s.trim()).filter(Boolean);
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174", "https://jobportal-two-lemon.vercel.app"],
+    origin: (origin, callback) => {
+      // Allow non-browser requests like curl/postman when origin is undefined
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS policy: origin ${origin} not allowed`), false);
+    },
     credentials: true,
   })
 );
+
 app.use("/uploads", express.static("uploads"));
 
 //routes
