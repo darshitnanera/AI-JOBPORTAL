@@ -10,7 +10,7 @@ import {
   CircleChevronRight,
 } from "lucide-react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import B1 from "../../assets/bannervideo.mp4";
+// Video hosted externally; no local import to avoid large binary in repo
 import { bannerStyles as s } from "../../assets/dummyStyles";
 
 /* --- LottieLogo component (unchanged except style references) --- */
@@ -121,7 +121,8 @@ const Banner = () => {
   const isXL = windowWidth >= 1280;
   const lottieSize = windowWidth < 640 ? 48 : windowWidth < 1024 ? 64 : 72;
 
-  const DEMO_VIDEO_URL = B1;
+  // Direct-download link from Google Drive (provided by user)
+  const DEMO_VIDEO_URL = "https://drive.google.com/uc?export=download&id=1x00FRMGpVvLu3RiZW2PzeDIbhZ3A7AnL";
   const navigate = useNavigate();
 
   useEffect(() => {
