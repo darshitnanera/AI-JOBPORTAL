@@ -113,7 +113,7 @@ const SignUpPage = () => {
     if (!validateForm()) return;
     try {
       setIsLoading(true);
-      const res = await API.post("/auth/register", formData);
+      const res = await API.post("/api/auth/register", formData);
       setToast({ message: res.data.message, type: "success" });
       setIsVerifying(true); // Switch to OTP UI
     } catch (err) {
@@ -135,7 +135,7 @@ const SignUpPage = () => {
     }
     try {
       setIsLoading(true);
-      const res = await API.post("/auth/verify-email", {
+      const res = await API.post("/api/auth/verify-email", {
         email: formData.email,
         otp,
       });

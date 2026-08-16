@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Toast from "../Common/Toast";
 import { jobDetailPageStyles as s } from "../../assets/dummyStyles";
+import { apiUrl } from "../../utils/api";
 
 const STORAGE_USER_KEY = "jobportal_user";
 const STORAGE_JOBS_KEY = "savedJobs";
@@ -35,7 +36,7 @@ const JobDetailPage = () => {
     const fetchJob = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/job/${id}`);
+        const res = await fetch(apiUrl(`/api/job/${id}`));
         const data = await res.json();
         if (data.success) {
           const bJob = data.job;
@@ -199,7 +200,7 @@ const JobDetailPage = () => {
         const token = rawUser ? JSON.parse(rawUser).token : null;
         if (!token) return;
 
-        const res = await fetch("/api/application/user", {
+        const res = await fetch(apiUrl("/api/application/user"), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -261,7 +262,7 @@ const JobDetailPage = () => {
         return;
       }
 
-      const res = await fetch("/api/user/profile", {
+      const res = await fetch(apiUrl("/api/user/profile"), {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -317,7 +318,7 @@ const JobDetailPage = () => {
       }
 
       const res = await fetch(
-        `/api/application/apply/${confirmToast.jobId}`,
+        apiUrl(`/api/application/apply/${confirmToast.jobId}`),
         {
           method: "POST",
           headers: {

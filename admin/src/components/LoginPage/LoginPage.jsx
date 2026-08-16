@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { loginPageStyles as s } from "../../assets/dummyStyles";
+import { apiUrl } from "../../utils/api";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -46,7 +47,7 @@ const LoginPage = () => {
       return;
     }
     try {
-      const res = await axios.post("/api/auth/login", {
+      const res = await axios.post(apiUrl("/api/auth/login"), {
         email,
         password,
       });

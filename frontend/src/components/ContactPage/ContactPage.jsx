@@ -10,6 +10,7 @@ import {
   CircleArrowRight,
 } from "lucide-react";
 import { contactPageStyles as s } from "../../assets/dummyStyles";
+import { apiUrl } from "../../utils/api";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -122,7 +123,7 @@ const ContactPage = () => {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/inquiry", {
+      const res = await fetch(apiUrl("/api/inquiry"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

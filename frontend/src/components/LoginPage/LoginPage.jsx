@@ -110,7 +110,7 @@ const LoginPage = () => {
     try {
       setIsLoading(true);
 
-      const res = await API.post("/auth/login", { email, password });
+      const res = await API.post("/api/auth/login", { email, password });
 
       const userData = {
         name: res.data.user.name,
@@ -149,7 +149,7 @@ const LoginPage = () => {
     }
     try {
       setIsLoading(true);
-      const res = await API.post("/auth/forgot-password", {
+      const res = await API.post("/api/auth/forgot-password", {
         email: resetEmail,
       });
       if (res.data.success) {
@@ -174,7 +174,7 @@ const LoginPage = () => {
     }
     try {
       setIsLoading(true);
-      const res = await API.post("/auth/reset-password", {
+      const res = await API.post("/api/auth/reset-password", {
         email: resetEmail,
         otp,
         newPassword,

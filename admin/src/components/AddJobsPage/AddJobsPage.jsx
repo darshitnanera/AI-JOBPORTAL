@@ -20,6 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { addJobsPageStyles as s } from "../../assets/dummyStyles";
+import { apiUrl } from "../../utils/api";
 
 // Toast component
 const Toast = ({ message, type, onClose }) => {
@@ -401,7 +402,7 @@ const AddJobsPage = () => {
         const token = localStorage.getItem("token");
 
         const response = await axios.post(
-          "/api/job",
+          apiUrl("/api/job"),
           formDataToSend,
           {
             headers: {

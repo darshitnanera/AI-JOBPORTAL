@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { companiesPageStyles as s } from "../../assets/dummyStyles";
+import { apiUrl } from "../../utils/api";
 
 const Companies = () => {
   const [logoFile, setLogoFile] = useState(null);
@@ -29,7 +30,7 @@ const Companies = () => {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await axios.get("/api/company/", {
+        const res = await axios.get(apiUrl("/api/company/"), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -99,7 +100,7 @@ const Companies = () => {
       formData.append("website", website.trim());
 
       const res = await axios.post(
-        "/api/company",
+        apiUrl("/api/company"),
         formData,
         {
           headers: {
@@ -138,7 +139,7 @@ const Companies = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `/api/company/${pendingDeleteId}`,
+        apiUrl(`/api/company/${pendingDeleteId}`),
         {
           headers: {
             Authorization: `Bearer ${token}`,

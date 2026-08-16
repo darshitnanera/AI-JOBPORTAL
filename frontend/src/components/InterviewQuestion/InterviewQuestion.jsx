@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, CircleArrowOutUpRight } from "lucide-react";
 import { interviewQuestionsStyles as s } from "../../assets/dummyStyles";
+import { apiUrl } from "../../utils/api";
 
 /* ---------- small helper ---------- */
 const slugify = (str) =>
@@ -24,8 +25,8 @@ export default function InterviewQuestionsPage() {
       setLoading(true);
       try {
         const [companiesRes, rolesRes] = await Promise.all([
-          fetch("/api/interview/companies"),
-          fetch("/api/interview/roles"),
+          fetch(apiUrl("/api/interview/companies")),
+          fetch(apiUrl("/api/interview/roles")),
         ]);
 
         const companiesData = companiesRes.ok ? await companiesRes.json() : {};

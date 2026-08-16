@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Toast from "../Common/Toast";
 import { findJobPageStyles as s } from "../../assets/dummyStyles";
+import { apiUrl } from "../../utils/api";
 
 const STORAGE_JOBS_KEY = "savedJobs";
 const STORAGE_APPLIED_KEY = "appliedJobs";
@@ -151,7 +152,7 @@ const FindJobPage = () => {
         return;
       }
 
-      const res = await fetch(`/api/saved/job/${jobId}`, {
+      const res = await fetch(apiUrl(`/api/saved/job/${jobId}`), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -221,7 +222,7 @@ const FindJobPage = () => {
         return;
       }
 
-      const res = await fetch("/api/user/profile", {
+      const res = await fetch(apiUrl("/api/user/profile"), {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -286,7 +287,7 @@ const FindJobPage = () => {
       }
 
       const res = await fetch(
-        `/api/application/apply/${confirmToast.jobId}`,
+        apiUrl(`/api/application/apply/${confirmToast.jobId}`),
         {
           method: "POST",
           headers: {
@@ -332,7 +333,7 @@ const FindJobPage = () => {
         const token = rawUser ? JSON.parse(rawUser).token : null;
         if (!token) return;
 
-        const res = await fetch("/api/application/user", {
+        const res = await fetch(apiUrl("/api/application/user"), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -357,7 +358,7 @@ const FindJobPage = () => {
         const token = rawUser ? JSON.parse(rawUser).token : null;
         if (!token) return;
 
-        const res = await fetch("/api/saved", {
+        const res = await fetch(apiUrl("/api/saved"), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -413,7 +414,7 @@ const FindJobPage = () => {
       if (filters.maxSalary) params.append("maxSalary", filters.maxSalary);
 
       const res = await fetch(
-        `/api/job?${params.toString()}`,
+        apiUrl(`/api/job?${params.toString()}`),
       );
       const data = await res.json();
 

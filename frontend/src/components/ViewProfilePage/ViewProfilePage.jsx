@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { viewProfilePageStyles as s } from "../../assets/dummyStyles";
+import { apiUrl } from "../../utils/api";
 
 // Simple toast component
 const Toast = ({ message, type = "success", onClose }) => {
@@ -54,7 +55,7 @@ const ViewProfilePage = () => {
       try {
         const user = JSON.parse(localStorage.getItem("jobportal_user"));
 
-        const res = await fetch("/api/user/profile", {
+        const res = await fetch(apiUrl("/api/user/profile"), {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -129,7 +130,7 @@ const ViewProfilePage = () => {
       if (profile.resume instanceof File) {
         formData.append("resume", profile.resume);
       }
-      const res = await fetch("/api/user/profile", {
+      const res = await fetch(apiUrl("/api/user/profile"), {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${user.token}`,
@@ -177,7 +178,7 @@ const ViewProfilePage = () => {
       const url = URL.createObjectURL(profile.resume);
       window.open(url, "_blank");
     } else if (typeof profile.resume === "string") {
-      const fullUrl = `/api/user/resume/${originalProfile._id}`;
+      const fullUrl = apiUrl(`/api/user/resume/${originalProfile._id}`);
 
       const link = document.createElement("a");
       link.href = fullUrl;

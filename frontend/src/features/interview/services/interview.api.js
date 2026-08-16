@@ -12,7 +12,7 @@ export const generateInterviewReport = async ({
     formData.append("resume", resumeFile);
   }
 
-  const response = await API.post("/ai-suggestion", formData, {
+  const response = await API.post("/api/ai-suggestion", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -22,18 +22,18 @@ export const generateInterviewReport = async ({
 };
 
 export const getInterviewReportById = async (interviewId) => {
-  const response = await API.get(`/ai-suggestion/report/${interviewId}`);
+  const response = await API.get(`/api/ai-suggestion/report/${interviewId}`);
   return response.data;
 };
 
 export const getAllInterviewReports = async () => {
-  const response = await API.get("/ai-suggestion");
+  const response = await API.get("/api/ai-suggestion");
   return response.data;
 };
 
 export const generateResumePdf = async ({ interviewReportId }) => {
   const response = await API.post(
-    `/ai-suggestion/resume/pdf/${interviewReportId}`,
+    `/api/ai-suggestion/resume/pdf/${interviewReportId}`,
     null,
     { responseType: "blob" },
   );

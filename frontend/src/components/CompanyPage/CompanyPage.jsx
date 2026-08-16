@@ -13,6 +13,7 @@ import {
 import Toast from "../Common/Toast";
 import { companyPageStyles as s } from "../../assets/dummyStyles";
 import axios from "axios";
+import { API_BASE_URL, apiUrl } from "../../utils/api";
 
 const STORAGE_KEY = "savedQuestionIds";
 const ToastImport = Toast; // for checking
@@ -50,7 +51,7 @@ const CompanyPage = () => {
     const fetchCompanies = async () => {
       try {
         const response = await axios.get(
-          "/api/interview/companies",
+          `${API_BASE_URL}/api/interview/companies`,
         );
         if (response.data.success) {
           setCompanies(response.data.companies);
@@ -78,7 +79,7 @@ const CompanyPage = () => {
         const token = rawUser ? JSON.parse(rawUser).token : null;
         if (!token) return;
 
-        const res = await fetch("/api/saved", {
+        const res = await fetch(apiUrl("/api/saved"), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -107,7 +108,7 @@ const CompanyPage = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `/api/interview/company/${selectedCompany}`,
+          `${API_BASE_URL}/api/interview/company/${selectedCompany}`,
         );
         if (response.data.success) {
           setInterviewQuestions(response.data.questions);
@@ -138,7 +139,7 @@ const CompanyPage = () => {
       }
 
       const res = await fetch(
-        `/api/saved/question/${id}?type=interview`,
+        apiUrl(`/api/saved/question/${id}?type=interview`),
         {
           method: "POST",
           headers: {
