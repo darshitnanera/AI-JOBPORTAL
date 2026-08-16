@@ -32,7 +32,7 @@ if (missingEnv.length) {
 app.use(express.json());
 
 // Configure CORS using an environment-driven allowlist. Set CORS_ORIGINS as a comma-separated list in production (e.g. in Render/Railway).
-const defaultOrigins = "http://localhost:5173,http://localhost:5174,https://jobportal-issmtuopx-darshitnanera544-4827s-projects.vercel.app,https://ai-jobportal-71nn.vercel.app";
+const defaultOrigins = "https://jobportal-issmtuopx-darshitnanera544-4827s-projects.vercel.app,https://ai-jobportal-71nn.vercel.app,https://ai-jobportal-six.vercel.app";
 const allowedOrigins = (process.env.CORS_ORIGINS || defaultOrigins).split(",").map((s) => s.trim()).filter(Boolean);
 
 app.use(
@@ -65,5 +65,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server Started on http://localhost:${PORT}`);
+  console.log(`Server Started on port ${PORT}`);
 });

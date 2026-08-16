@@ -401,7 +401,7 @@ const AddJobsPage = () => {
         const token = localStorage.getItem("token");
 
         const response = await axios.post(
-          "http://localhost:5000/api/job",
+          "/api/job",
           formDataToSend,
           {
             headers: {

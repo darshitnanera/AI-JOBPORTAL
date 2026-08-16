@@ -24,8 +24,8 @@ export default function InterviewQuestionsPage() {
       setLoading(true);
       try {
         const [companiesRes, rolesRes] = await Promise.all([
-          fetch("http://localhost:5000/api/interview/companies"),
-          fetch("http://localhost:5000/api/interview/roles"),
+          fetch("/api/interview/companies"),
+          fetch("/api/interview/roles"),
         ]);
 
         const companiesData = await companiesRes.json();

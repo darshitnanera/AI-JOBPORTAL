@@ -44,7 +44,7 @@ const Dashboard = () => {
 
         // Fetch Stats
         const statsRes = await fetch(
-          "http://localhost:5000/api/job/admin/stats",
+          "/api/job/admin/stats",
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -56,7 +56,7 @@ const Dashboard = () => {
 
         // Fetch Jobs
         const jobsRes = await fetch(
-          "http://localhost:5000/api/job/admin/jobs",
+          "/api/job/admin/jobs",
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -71,7 +71,7 @@ const Dashboard = () => {
             category: j.category,
             logo: j.companyLogo?.startsWith("http")
               ? j.companyLogo
-              : `http://localhost:5000${j.companyLogo || ""}`,
+              : `${j.companyLogo || ""}`,
             applicants: j.applicantsCount || 0,
             status: j.status || "active",
           }));
@@ -109,7 +109,7 @@ const Dashboard = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/job/${jobId}/close`, {
+      const res = await fetch(`/api/job/${jobId}/close`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -121,7 +121,7 @@ const Dashboard = () => {
         setToast({ message: "Job closed successfully!", type: "success" });
         // Refresh stats and jobs list
         const statsRes = await fetch(
-          "http://localhost:5000/api/job/admin/stats",
+          "/api/job/admin/stats",
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -130,7 +130,7 @@ const Dashboard = () => {
         if (statsData.success) setDashboardStats(statsData.stats);
 
         const jobsRes = await fetch(
-          "http://localhost:5000/api/job/admin/jobs",
+          "/api/job/admin/jobs",
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -145,7 +145,7 @@ const Dashboard = () => {
             category: j.category,
             logo: j.companyLogo?.startsWith("http")
               ? j.companyLogo
-              : `http://localhost:5000${j.companyLogo || ""}`,
+              : `${j.companyLogo || ""}`,
             applicants: j.applicantsCount || 0,
             status: j.status || "active",
           }));

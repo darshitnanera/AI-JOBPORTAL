@@ -27,7 +27,7 @@ const ViewApplicantsPage = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(
-          `http://localhost:5000/api/application/${jobId}/applicants`,
+          `/api/application/${jobId}/applicants`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -68,7 +68,7 @@ const ViewApplicantsPage = () => {
 
   const handleViewResume = (resumeUrl, userId) => {
     if (!resumeUrl) return;
-    const fullUrl = `http://localhost:5000/api/user/resume/${userId}`;
+    const fullUrl = `/api/user/resume/${userId}`;
     const link = document.createElement("a");
     link.href = fullUrl;
     link.target = "_blank";

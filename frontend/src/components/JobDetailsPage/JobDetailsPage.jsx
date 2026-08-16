@@ -35,7 +35,7 @@ const JobDetailPage = () => {
     const fetchJob = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:5000/api/job/${id}`);
+        const res = await fetch(`/api/job/${id}`);
         const data = await res.json();
         if (data.success) {
           const bJob = data.job;
@@ -52,7 +52,7 @@ const JobDetailPage = () => {
             jobType: bJob.jobType,
             logo: bJob.companyLogo?.startsWith("http")
               ? bJob.companyLogo
-              : `http://localhost:5000${bJob.companyLogo || ""}`,
+              : `${bJob.companyLogo || ""}`,
             datePosted: bJob.postDate || bJob.createdAt,
             overview: bJob.overview,
             responsibilities: bJob.responsibilities,
@@ -199,7 +199,7 @@ const JobDetailPage = () => {
         const token = rawUser ? JSON.parse(rawUser).token : null;
         if (!token) return;
 
-        const res = await fetch("http://localhost:5000/api/application/user", {
+        const res = await fetch("/api/application/user", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -261,7 +261,7 @@ const JobDetailPage = () => {
         return;
       }
 
-      const res = await fetch("http://localhost:5000/api/user/profile", {
+      const res = await fetch("/api/user/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -317,7 +317,7 @@ const JobDetailPage = () => {
       }
 
       const res = await fetch(
-        `http://localhost:5000/api/application/apply/${confirmToast.jobId}`,
+        `/api/application/apply/${confirmToast.jobId}`,
         {
           method: "POST",
           headers: {

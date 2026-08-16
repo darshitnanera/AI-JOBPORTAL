@@ -9,7 +9,7 @@ const Career = () => {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/company");
+        const res = await axios.get("/api/company");
         setCompanies(res.data.companies);
       } catch (error) {
         console.error("Error fetching companies:", error);

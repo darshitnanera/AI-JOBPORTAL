@@ -151,7 +151,7 @@ const ListRoleQuestion = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        "http://localhost:5000/api/interview/roles",
+        "/api/interview/roles",
       );
       if (response.data.success) {
         setRoles(response.data.roles);
@@ -326,7 +326,7 @@ const ListRoleQuestion = () => {
       }
 
       const response = await axios.put(
-        `http://localhost:5000/api/interview/role/${id}`,
+        `/api/interview/role/${id}`,
         formData,
         {
           headers: {
@@ -373,7 +373,7 @@ const ListRoleQuestion = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.delete(
-        `http://localhost:5000/api/interview/role/${deleteRoleId}`,
+        `/api/interview/role/${deleteRoleId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

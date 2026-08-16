@@ -29,7 +29,7 @@ const Companies = () => {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await axios.get("http://localhost:5000/api/company/", {
+        const res = await axios.get("/api/company/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -99,7 +99,7 @@ const Companies = () => {
       formData.append("website", website.trim());
 
       const res = await axios.post(
-        "http://localhost:5000/api/company",
+        "/api/company",
         formData,
         {
           headers: {
@@ -138,7 +138,7 @@ const Companies = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `http://localhost:5000/api/company/${pendingDeleteId}`,
+        `/api/company/${pendingDeleteId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -16,7 +16,7 @@ import {
 import axios from "axios";
 import { listCompanyQuestionStyles as s } from "../../assets/dummyStyles";
 
-const API_URL = "http://localhost:5000/api/interview";
+const API_URL = "/api/interview";
 
 // Robust CSV parser from CompanyQuestionPage
 const parseCSVText = (text) => {
