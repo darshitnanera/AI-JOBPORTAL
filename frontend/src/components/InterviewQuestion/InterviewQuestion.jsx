@@ -28,17 +28,23 @@ export default function InterviewQuestionsPage() {
           fetch("/api/interview/roles"),
         ]);
 
-        const companiesData = await companiesRes.json();
-        const rolesData = await rolesRes.json();
+        const companiesData = companiesRes.ok ? await companiesRes.json() : {};
+        const rolesData = rolesRes.ok ? await rolesRes.json() : {};
 
         if (companiesData.success) {
-          setCompanies(companiesData.companies.slice(0, 8));
+          setCompanies(
+            Array.isArray(companiesData.companies)
+              ? companiesData.companies.slice(0, 8)
+              : [],
+          );
         }
         if (rolesData.success) {
-          setRoles(rolesData.roles.slice(0, 8));
+          setRoles(Array.isArray(rolesData.roles) ? rolesData.roles.slice(0, 8) : []);
         }
       } catch (error) {
         console.error("Error fetching home page data:", error);
+        setCompanies([]);
+        setRoles([]);
       } finally {
         setLoading(false);
       }

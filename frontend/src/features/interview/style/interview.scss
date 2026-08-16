@@ -1,0 +1,363 @@
+@use "./button.scss";
+
+$bg-page: #0d1117;
+$bg-card: #161b22;
+$bg-panel: #1c2230;
+$border-color: #2a3348;
+$text-primary: #e6edf3;
+$text-muted: #7d8590;
+$accent: #ff2d78;
+$font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+.loading-screen,
+.interview-page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: $bg-page;
+  color: $text-primary;
+  font-family: $font-stack;
+}
+
+.loading-screen {
+  display: grid;
+  place-items: center;
+}
+
+.interview-page {
+  display: flex;
+  padding: 1.5rem;
+}
+
+.interview-layout {
+  display: flex;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  background-color: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: 1rem;
+}
+
+.interview-divider {
+  width: 1px;
+  background-color: $border-color;
+  flex-shrink: 0;
+}
+
+.interview-nav {
+  width: 220px;
+  flex-shrink: 0;
+  padding: 1.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  &__label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $text-muted;
+    margin-bottom: 0.5rem;
+    padding: 0 0.75rem;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    background: none;
+    border: none;
+    border-radius: 0.5rem;
+    color: $text-muted;
+    font-family: $font-stack;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover {
+      background-color: $bg-panel;
+      color: $text-primary;
+    }
+
+    &--active {
+      background-color: rgba($accent, 0.1);
+      color: $accent;
+    }
+  }
+}
+
+.interview-content {
+  flex: 1;
+  padding: 1.75rem 2rem 5rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 3rem);
+}
+
+.content-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $border-color;
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  &__count {
+    font-size: 0.8rem;
+    color: $text-muted;
+    background-color: $bg-panel;
+    padding: 0.15rem 0.6rem;
+    border-radius: 2rem;
+    border: 1px solid $border-color;
+  }
+}
+
+.q-list,
+.roadmap-list,
+.skill-gaps__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.q-card {
+  background-color: $bg-panel;
+  border: 1px solid $border-color;
+  border-radius: 0.6rem;
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+  }
+
+  &__index {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: $accent;
+    background-color: rgba($accent, 0.1);
+    border: 1px solid rgba($accent, 0.2);
+    border-radius: 0.3rem;
+    padding: 0.15rem 0.4rem;
+    margin-top: 2px;
+  }
+
+  &__question {
+    flex: 1;
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    color: $text-muted;
+
+    &--open {
+      transform: rotate(180deg);
+      color: $accent;
+    }
+  }
+
+  &__body {
+    padding: 0 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border-top: 1px solid $border-color;
+    padding-top: 0.75rem;
+  }
+
+  &__section p,
+  &__section {
+    margin: 0;
+  }
+
+  &__tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.25rem;
+    width: fit-content;
+
+    &--intention {
+      color: #a78bfa;
+      background-color: rgba(#a78bfa, 0.1);
+    }
+
+    &--answer {
+      color: #3fb950;
+      background-color: rgba(#3fb950, 0.1);
+    }
+  }
+}
+
+.roadmap-list {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 28px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, $accent, rgba($accent, 0.1));
+  }
+}
+
+.roadmap-day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0 0.75rem 3.5rem;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 21px;
+    top: 1.05rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: $bg-card;
+    border: 2px solid $accent;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  &__badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: $accent;
+    background-color: rgba($accent, 0.1);
+    border: 1px solid rgba($accent, 0.25);
+    padding: 0.1rem 0.5rem;
+    border-radius: 2rem;
+  }
+
+  &__focus {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  &__tasks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.845rem;
+      color: $text-muted;
+      line-height: 1.5;
+    }
+  }
+
+  &__bullet {
+    flex-shrink: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: $text-muted;
+    margin-top: 8px;
+  }
+}
+
+.interview-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  padding: 1.75rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: $border-color;
+}
+
+.match-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+
+  &__label,
+  &__sub,
+  .skill-gaps__label {
+    color: $text-muted;
+  }
+
+  &__ring {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    border: 8px solid $accent;
+  }
+
+  &__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+
+  &__pct {
+    font-size: 0.85rem;
+    margin-left: 2px;
+  }
+}
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+
+  &--high { background: rgba(255, 77, 77, 0.15); color: #ff6b6b; }
+  &--medium { background: rgba(245, 166, 35, 0.15); color: #f5a623; }
+  &--low { background: rgba(63, 185, 80, 0.15); color: #3fb950; }
+}
+
+@media (max-width: 1100px) {
+  .interview-layout {
+    flex-direction: column;
+  }
+
+  .interview-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .interview-nav,
+  .interview-sidebar {
+    width: auto;
+  }
+}

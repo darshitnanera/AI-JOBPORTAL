@@ -1,10 +1,29 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { sendVerificationEmail, sendForgotPasswordEmail } from "../utils/emailService.js";
+import mongoose from "mongoose";
+import {
+    hasEmailConfiguration,
+    sendVerificationEmail,
+    sendForgotPasswordEmail,
+} from "../utils/emailService.js";
+
+const ensureDatabaseReady = (res) => {
+    if (mongoose.connection.readyState !== 1) {
+        res.status(503).json({
+            success: false,
+            message: "Database is not configured. Set MONGO_URI in backend/.env and restart the server.",
+        });
+        return false;
+    }
+
+    return true;
+};
 
 export const register = async (req, res) => {
     try {
+        if (!ensureDatabaseReady(res)) return;
+
         const { name, email, password, role } = req.body;
 
         const userExist = await User.findOne({ email });
@@ -33,21 +52,30 @@ export const register = async (req, res) => {
             verificationOTPExpires
         });
 
-        // Send activation email
-        try {
-            await sendVerificationEmail(email, name, verificationOTP);
-        } catch (error) {
-            console.error("Failed to send verification email:", error);
+        // In development without email credentials, auto-verify so sign-up can work end-to-end.
+        if (hasEmailConfiguration()) {
+            try {
+                await sendVerificationEmail(email, name, verificationOTP);
+            } catch (error) {
+                console.error("Failed to send verification email:", error);
+            }
+        } else {
+            user.isVerified = true;
+            user.verificationOTP = undefined;
+            user.verificationOTPExpires = undefined;
+            await user.save();
         }
 
         res.status(201).json({
             success: true,
-            message: "Account created successfully. Please check your email for the 6-digit verification code.",
+            message: hasEmailConfiguration()
+                ? "Account created successfully. Please check your email for the 6-digit verification code."
+                : "Account created successfully.",
             user: {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                isVerified: false
+                isVerified: user.isVerified
             }
         });
 
@@ -62,6 +90,8 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
+        if (!ensureDatabaseReady(res)) return;
+
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });
@@ -109,6 +139,8 @@ export const login = async (req, res) => {
 
 export const verifyEmail = async (req, res) => {
     try {
+        if (!ensureDatabaseReady(res)) return;
+
         const { email, otp } = req.body;
 
         if (!email || !otp) {
@@ -150,6 +182,8 @@ export const verifyEmail = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
     try {
+        if (!ensureDatabaseReady(res)) return;
+
         const { email } = req.body;
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required" });
@@ -184,6 +218,8 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
     try {
+        if (!ensureDatabaseReady(res)) return;
+
         const { email, otp, newPassword } = req.body;
 
         if (!email || !otp || !newPassword) {

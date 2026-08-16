@@ -8,6 +8,7 @@ import userRouter from "./routes/user.routes.js";
 import companyRouter from "./routes/company.routes.js";
 import jobRouter from "./routes/job.routes.js";
 import interviewRouter from "./routes/interview.routes.js";
+import aiSuggestionRouter from "./routes/aiSuggestion.routes.js";
 import applicationRouter from "./routes/application.routes.js";
 import savedRouter from "./routes/saved.routes.js";
 import inquiryRouter from "./routes/inquiry.routes.js";
@@ -32,7 +33,7 @@ if (missingEnv.length) {
 app.use(express.json());
 
 // Configure CORS using an environment-driven allowlist. Set CORS_ORIGINS as a comma-separated list in production (e.g. in Render/Railway).
-const defaultOrigins = "https://jobportal-issmtuopx-darshitnanera544-4827s-projects.vercel.app,https://ai-jobportal-71nn.vercel.app,https://ai-jobportal-six.vercel.app";
+const defaultOrigins = "http://localhost:5173,http://localhost:5174,https://jobportal-issmtuopx-darshitnanera544-4827s-projects.vercel.app,https://ai-jobportal-71nn.vercel.app,https://ai-jobportal-six.vercel.app";
 const allowedOrigins = (process.env.CORS_ORIGINS || defaultOrigins).split(",").map((s) => s.trim()).filter(Boolean);
 
 app.use(
@@ -55,6 +56,7 @@ app.use("/api/user", userRouter);
 app.use("/api/company", companyRouter);
 app.use("/api/job", jobRouter);
 app.use("/api/interview", interviewRouter);
+app.use("/api/ai-suggestion", aiSuggestionRouter);
 app.use("/api/application", applicationRouter);
 app.use("/api/saved", savedRouter);
 app.use("/api/inquiry", inquiryRouter);

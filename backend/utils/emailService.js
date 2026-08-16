@@ -4,12 +4,16 @@ dotenv.config();
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY?.trim();
 const SENDER_EMAIL = process.env.EMAIL_USER;
+const EMAIL_CONFIGURED = Boolean(BREVO_API_KEY && SENDER_EMAIL);
 
 // Reusable email sender function (using axios for compatibility across Node versions)
 const sendEmail = async ({ to, subject, htmlContent }) => {
     try {
-        if (!BREVO_API_KEY || !SENDER_EMAIL) {
-            throw new Error("Email configuration missing (BREVO_API_KEY or EMAIL_USER)");
+        if (!EMAIL_CONFIGURED) {
+            if (process.env.NODE_ENV !== "production") {
+                console.warn(`Email skipped [${subject}]: BREVO_API_KEY or EMAIL_USER is missing`);
+            }
+            return { skipped: true };
         }
 
         const response = await axios.post(
@@ -71,6 +75,13 @@ export const sendForgotPasswordEmail = async (email, name, otp) => {
 };
 
 export const sendAdminInquiryEmail = async (data) => {
+    if (!EMAIL_CONFIGURED) {
+        if (process.env.NODE_ENV !== "production") {
+            console.warn("Email skipped [New Contact Form Submission]: BREVO_API_KEY or EMAIL_USER is missing");
+        }
+        return { skipped: true };
+    }
+
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
             <h2 style="color: #4f46e5;">New Contact Form Submission</h2>
@@ -94,3 +105,5 @@ export const sendAdminInquiryEmail = async (data) => {
         htmlContent
     });
 };
+
+export const hasEmailConfiguration = () => EMAIL_CONFIGURED;

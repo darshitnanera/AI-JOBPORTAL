@@ -14,6 +14,7 @@ import {
   ChevronUp,
   User,
   UserPen,
+  Sparkles,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { navbarStyles as s } from "../../assets/dummyStyles";
@@ -34,6 +35,13 @@ const navItems = [
     label: "Contact",
     path: "/contact",
     icon: <UserPen size={18} />,
+  },
+  {
+    id: "aiSuggestion",
+    label: "AI-SUGGESTION",
+    path: "/ai-suggestion",
+    icon: <Sparkles size={18} />,
+    requiresAuth: true,
   },
 ];
 
@@ -133,6 +141,10 @@ const Navbar = () => {
 
   const toggleUserMenu = () => setIsUserMenuOpen((v) => !v);
 
+  const visibleNavItems = user
+    ? navItems
+    : navItems.filter((item) => !item.requiresAuth);
+
   const getInitials = (name) => {
     if (!name) return "U";
     const parts = name.trim().split(" ");
@@ -165,7 +177,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className={s.desktopNav}>
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <div
                 key={item.id}
                 className={s.navItemContainer}
@@ -263,7 +275,7 @@ const Navbar = () => {
         <div className={s.mobileMenu(isMobileMenuOpen)}>
           <div className={s.mobileMenuCard}>
             <div className={s.mobileMenuSpace}>
-              {navItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item)}

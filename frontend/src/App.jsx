@@ -11,6 +11,10 @@ import SignUp from "./pages/SignUp/SignUp";
 import JobDetail from "./pages/JobDetail/JobDetail";
 import Contact from "./pages/Contact/Contact";
 import ViewProfile from "./pages/ViewProfile/ViewProfile";
+import ProtectedRoute from "./components/ProtectedRoute";
+import InterviewHome from "./features/interview/pages/Home";
+import Interview from "./features/interview/pages/Interview";
+import { InterviewProvider } from "./features/interview/interview.context";
 const ScrollToTopOnRouteChange = () => {
   const { pathname } = useLocation();
 
@@ -68,27 +72,44 @@ const ScrollToTopButton = () => {
 
 const App = () => {
   return (
-    <>
-      <ScrollToTopOnRouteChange />
+    <InterviewProvider>
+      <>
+        <ScrollToTopOnRouteChange />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/jobs" element={<JobPage />} />
-        <Route path="/companies" element={<Company />} />
-        <Route path="/companies/:companyId" element={<Company />} />
-        <Route path="/roles" element={<Roles />} />
-        <Route path="/roles/:roleSlug" element={<Roles />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/jobdetails/:id" element={<JobDetail />} />
-        <Route path="/viewprofile" element={<ViewProfile />} />
-        <Route path="/contact" element={<Contact />} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/jobs" element={<JobPage />} />
+          <Route path="/companies" element={<Company />} />
+          <Route path="/companies/:companyId" element={<Company />} />
+          <Route path="/roles" element={<Roles />} />
+          <Route path="/roles/:roleSlug" element={<Roles />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/jobdetails/:id" element={<JobDetail />} />
+          <Route path="/viewprofile" element={<ViewProfile />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/saved" element={<Saved />} />
+          <Route
+            path="/ai-suggestion"
+            element={
+              <ProtectedRoute>
+                <InterviewHome />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai-suggestion/:interviewId"
+            element={
+              <ProtectedRoute>
+                <Interview />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
 
-        <Route path="/saved" element={<Saved />} />
-      </Routes>
-
-      <ScrollToTopButton />
-    </>
+        <ScrollToTopButton />
+      </>
+    </InterviewProvider>
   );
 };
 

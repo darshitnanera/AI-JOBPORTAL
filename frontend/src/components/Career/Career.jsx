@@ -10,9 +10,13 @@ const Career = () => {
     const fetchCompanies = async () => {
       try {
         const res = await axios.get("/api/company");
-        setCompanies(res.data.companies);
+        const nextCompanies = Array.isArray(res.data?.companies)
+          ? res.data.companies
+          : [];
+        setCompanies(nextCompanies);
       } catch (error) {
         console.error("Error fetching companies:", error);
+        setCompanies([]);
       }
     };
     fetchCompanies();
