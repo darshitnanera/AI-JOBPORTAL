@@ -1454,15 +1454,15 @@ export const navbarStyles = {
 
   logoTextContainer: "flex flex-col leading-4",
   logoTitle:
-    "text-xl md:text-2xl xl:text-2xl lg:text-sm font-bold bg-linear-to-r from-blue-400 to-indigo-700 bg-clip-text text-transparent",
-  logoSubtitle: "text-[10px] sm:text-xs text-gray-500 flex items-center gap-1",
+    "text-lg md:text-xl lg:text-lg font-bold bg-linear-to-r from-blue-400 to-indigo-700 bg-clip-text text-transparent",
+  logoSubtitle: "text-[9px] sm:text-[10px] text-gray-500 flex items-center gap-1",
 
   // ==================== Desktop Navigation ====================
   desktopNav: "hidden lg:flex items-center space-x-1",
 
   navItemContainer: "relative",
   navButton: (active) =>
-    `flex items-center lg:text-sm xl:text-lg cursor-pointer space-x-2 px-4 md:px-5 py-2 md:py-3 rounded-xl transition-all duration-300 text-sm md:text-base ${
+    `flex items-center lg:text-sm xl:text-sm cursor-pointer space-x-2 px-3 md:px-4 py-2 md:py-2.5 rounded-xl transition-all duration-300 text-xs md:text-sm ${
       active
         ? "text-blue-600 bg-blue-50 shadow-inner"
         : "text-gray-600 hover:text-blue-600 hover:bg-blue-50/50"
@@ -1473,7 +1473,7 @@ export const navbarStyles = {
       isHovered ? "scale-110" : "scale-100"
     }`,
 
-  navLabel: "font-medium",
+  navLabel: "font-medium text-xs md:text-sm",
 
   navUnderline: (isHovered) =>
     `absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-linear-to-r from-blue-400 to-indigo-500 rounded-full transition-all duration-300 ${
@@ -1485,24 +1485,24 @@ export const navbarStyles = {
   actionInner: "flex items-center space-x-3",
 
   loginButton:
-    "group cursor-pointer relative px-5 md:px-6 py-2 md:py-3 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg",
+    "group cursor-pointer relative px-4 md:px-5 py-2 md:py-2.5 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg",
   loginButtonBg:
     "absolute inset-0 bg-linear-to-r from-blue-500 to-indigo-600 -translate-x-full group-hover:translate-x-0 transition-transform duration-300",
   loginButtonContent: "relative flex items-center space-x-2",
   loginIcon:
-    "w-5 h-5 text-blue-600 group-hover:text-white transition-colors duration-300",
+    "w-4 h-4 text-blue-600 group-hover:text-white transition-colors duration-300",
   loginText:
-    "font-medium text-blue-600 group-hover:text-white transition-colors duration-300",
+    "text-xs md:text-sm font-medium text-blue-600 group-hover:text-white transition-colors duration-300",
 
   // Profile Button & Dropdown
   profileButtonContainer: "relative",
   profileButton:
-    "profile-button cursor-pointer flex items-center gap-3 px-3 py-2 rounded-full transition-all duration-300 bg-white/60 hover:shadow-lg",
+    "profile-button cursor-pointer flex items-center gap-2 px-2.5 py-2 rounded-full transition-all duration-300 bg-white/60 hover:shadow-lg",
   profileAvatar:
     "w-8 h-8 rounded-full bg-linear-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-sm font-medium text-white animate-gradient",
   profileInfo: "flex items-center gap-2",
-  profileName: "text-sm lg:text-xs text-gray-800 font-medium",
-  profileChevron: "w-4 h-4 text-gray-600",
+  profileName: "text-xs lg:text-xs text-gray-800 font-medium",
+  profileChevron: "w-3.5 h-3.5 text-gray-600",
 
   userDropdown: (isOpen) =>
     `absolute right-0 mt-2 w-48 rounded-xl bg-white shadow-lg border border-gray-100 p-2 transition transform origin-top-right ${
@@ -1532,7 +1532,7 @@ export const navbarStyles = {
   mobileMenuSpace: "space-y-3",
 
   mobileNavButton: (active) =>
-    `flex items-center space-x-3 w-full p-3 sm:p-4 rounded-xl transition-all duration-300 text-sm sm:text-base ${
+    `flex items-center space-x-3 w-full p-3 sm:p-4 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
       active
         ? "bg-linear-to-r from-blue-50 to-indigo-50 text-blue-600 border border-blue-100"
         : "text-gray-600 hover:bg-gray-50"
@@ -1543,21 +1543,21 @@ export const navbarStyles = {
       active ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"
     }`,
 
-  mobileNavLabel: "font-medium flex-1 text-left",
+  mobileNavLabel: "font-medium flex-1 text-left text-xs sm:text-sm",
 
   mobileDivider: "pt-2 border-t border-gray-100",
 
   mobileLoginButton:
-    "flex items-center justify-center space-x-2 p-3 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition duration-300 w-full text-sm sm:text-base",
+    "flex items-center justify-center space-x-2 p-3 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition duration-300 w-full text-xs sm:text-sm",
 
   mobileUserInfo: "flex items-center gap-3 px-3",
   mobileAvatar:
     "w-10 h-10 rounded-full bg-linear-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-sm font-medium text-white",
-  mobileUserName: "text-sm font-medium text-gray-800",
+  mobileUserName: "text-xs sm:text-sm font-medium text-gray-800",
 
   mobileProfileGrid: "grid grid-cols-2 gap-3 pt-2",
   mobileProfileButton:
-    "flex items-center justify-center space-x-2 p-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition duration-300 text-sm",
+    "flex items-center justify-center space-x-2 p-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition duration-300 text-xs sm:text-sm",
 
   // ==================== Global CSS ====================
   globalStyles: `

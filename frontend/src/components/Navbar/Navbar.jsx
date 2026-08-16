@@ -141,10 +141,6 @@ const Navbar = () => {
 
   const toggleUserMenu = () => setIsUserMenuOpen((v) => !v);
 
-  const visibleNavItems = user
-    ? navItems
-    : navItems.filter((item) => !item.requiresAuth);
-
   const getInitials = (name) => {
     if (!name) return "U";
     const parts = name.trim().split(" ");
@@ -177,7 +173,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className={s.desktopNav}>
-            {visibleNavItems.map((item) => (
+            {navItems.map((item) => (
               <div
                 key={item.id}
                 className={s.navItemContainer}
@@ -275,7 +271,7 @@ const Navbar = () => {
         <div className={s.mobileMenu(isMobileMenuOpen)}>
           <div className={s.mobileMenuCard}>
             <div className={s.mobileMenuSpace}>
-              {visibleNavItems.map((item) => (
+              {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item)}
