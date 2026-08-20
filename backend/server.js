@@ -92,7 +92,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+// Express 5 / path-to-regexp v8 requires named params — bare "*" is invalid.
+// Use "/(.*)" to handle all OPTIONS preflight requests.
+app.options("/(.*)", cors(corsOptions));
 
 app.use("/uploads", express.static("uploads"));
 
