@@ -26,15 +26,16 @@ if (missingEnv.length) {
     console.error("Missing required environment variables:", missingEnv.join(", "));
     process.exit(1);
   } else {
-    console.warn("Warning - missing environment variables:", missingEnv.join(", ")); // warn in development
+    console.warn("Warning - missing environment variables:", missingEnv.join(", "));
   }
 }
 
-// Global middlewares
-app.use(express.json());
-
-// --- Robust CORS Configuration ---
-const defaultOrigins = [
+// ─── CORS ───────────────────────────────────────────────────────────────────
+//
+// ALWAYS-ALLOWED origins (hard-coded so they work even without env vars set).
+// Env vars CLIENT_URL and CORS_ORIGINS are additive extras.
+//
+const ALWAYS_ALLOWED = [
   "https://jobportal-app-three.vercel.app",
   "http://localhost:5173",
   "http://localhost:5174",
@@ -44,61 +45,67 @@ const defaultOrigins = [
   "http://127.0.0.1:5174",
 ];
 
-// Helper to normalize origins (strip trailing slashes)
-const normalizeOrigin = (url) => (url ? url.trim().replace(/\/+$/, "") : "");
+// Merge env-var-based origins (comma-separated) with always-allowed list.
+const getAllowedOrigins = () => {
+  const extra = [
+    ...(process.env.CLIENT_URL || "").split(","),
+    ...(process.env.CORS_ORIGINS || "").split(","),
+  ]
+    .map((s) => s.trim())
+    .filter(Boolean);
+  // Deduplicate with a Set
+  return [...new Set([...ALWAYS_ALLOWED, ...extra])];
+};
 
-// Collect configured origins from CLIENT_URL and CORS_ORIGINS
-const envClientOrigins = [
-  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : []),
-  ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",") : []),
-  ...defaultOrigins,
-]
-  .map(normalizeOrigin)
-  .filter(Boolean);
-
-const allowedOriginsSet = new Set(envClientOrigins);
+const ALLOWED_ORIGINS = getAllowedOrigins();
+console.log("[CORS] Allowed origins:", ALLOWED_ORIGINS);
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow non-browser requests (e.g. server-to-server, curl, Postman, health checks)
-    if (!origin) return callback(null, true);
+  origin: (incomingOrigin, callback) => {
+    // Allow server-to-server / Postman / curl (no origin header)
+    if (!incomingOrigin) return callback(null, true);
 
-    const normalized = normalizeOrigin(origin);
-
-    // Check allowlist
-    if (allowedOriginsSet.has(normalized)) {
+    // Exact match (most reliable — no normalization trickery)
+    if (ALLOWED_ORIGINS.includes(incomingOrigin)) {
       return callback(null, true);
     }
 
-    // Allow Vercel preview/branch deployments matching jobportal domain pattern
-    if (/^https:\/\/[a-z0-9-]+-.*\.vercel\.app$/i.test(normalized) || normalized.endsWith(".vercel.app")) {
+    // Match with trailing slash stripped (belt-and-suspenders)
+    const stripped = incomingOrigin.replace(/\/+$/, "");
+    if (ALLOWED_ORIGINS.some((o) => o.replace(/\/+$/, "") === stripped)) {
       return callback(null, true);
     }
 
-    console.warn(`[CORS Blocked] Origin not allowed: ${origin}`);
-    return callback(new Error(`CORS policy: origin ${origin} not allowed`), false);
+    // Allow ANY *.vercel.app preview URL (Vercel deploys unique URLs per commit)
+    if (incomingOrigin.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+
+    console.warn("[CORS] Blocked origin:", incomingOrigin);
+    return callback(new Error(`CORS: origin ${incomingOrigin} not allowed`), false);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "Accept",
-    "Origin",
-  ],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
   exposedHeaders: ["Content-Disposition", "Content-Length"],
   optionsSuccessStatus: 204,
 };
 
+// Apply CORS to every request
 app.use(cors(corsOptions));
-// Express 5 / path-to-regexp v8 requires named params — bare "*" is invalid.
-// Use "/(.*)" to handle all OPTIONS preflight requests.
+
+// Explicitly handle OPTIONS preflight for all routes.
+// NOTE: Express 5 / path-to-regexp v8 does NOT allow bare "*" — use "/(.*)" instead.
 app.options("/(.*)", cors(corsOptions));
 
+// ─── Body Parsing ────────────────────────────────────────────────────────────
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ─── Static Files ─────────────────────────────────────────────────────────────
 app.use("/uploads", express.static("uploads"));
 
-// Routes
+// ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/company", companyRouter);
@@ -109,15 +116,17 @@ app.use("/api/application", applicationRouter);
 app.use("/api/saved", savedRouter);
 app.use("/api/inquiry", inquiryRouter);
 
-// Health check / test
+// ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "ok",
     message: "AI-JobPortal Backend API is running...",
     timestamp: new Date().toISOString(),
+    allowedOrigins: ALLOWED_ORIGINS,
   });
 });
 
+// ─── Start ────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`Server Started on port ${PORT}`);
+  console.log(`[Server] Started on port ${PORT}`);
 });
