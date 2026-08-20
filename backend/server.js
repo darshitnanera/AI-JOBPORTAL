@@ -107,7 +107,7 @@ app.use("/api/application", applicationRouter);
 app.use("/api/saved", savedRouter);
 app.use("/api/inquiry", inquiryRouter);
 
-// Health check / test route
+// Health check / test
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "ok",
