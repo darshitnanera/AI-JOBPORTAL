@@ -221,7 +221,22 @@ const Navbar = () => {
                       {getInitials(user.name)}
                     </div>
                     <div className={s.profileInfo}>
-                      <span className={s.profileName}>{user.name}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={s.profileName}>{user.name}</span>
+                        {user.role === "recruiter" ? (
+                          <span className="text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-300">
+                            Recruiter
+                          </span>
+                        ) : user.role === "admin" ? (
+                          <span className="text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-300">
+                            Admin
+                          </span>
+                        ) : (
+                          <span className="text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-300">
+                            Candidate
+                          </span>
+                        )}
+                      </div>
                       {isUserMenuOpen ? (
                         <ChevronUp className={s.profileChevron} />
                       ) : (

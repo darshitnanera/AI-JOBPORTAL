@@ -1,4 +1,3 @@
-// LoginPage.jsx
 import React, { useEffect, useState } from "react";
 import {
   Mail,
@@ -9,8 +8,11 @@ import {
   CheckCircle,
   Eye,
   EyeOff,
+  User,
+  Building2,
+  Briefcase,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import API from "../../utils/api";
 import { loginPageStyles as s } from "../../assets/dummyStyles";
 
@@ -80,6 +82,13 @@ const Toast = ({ message, type = "success", onClose }) => {
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Detect role from URL query if present (e.g. /login?role=recruiter)
+  const searchParams = new URLSearchParams(location.search);
+  const initialRole = searchParams.get("role") === "recruiter" ? "recruiter" : "candidate";
+
+  const [role, setRole] = useState(initialRole); // "candidate" | "recruiter"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -110,18 +119,24 @@ const LoginPage = () => {
     try {
       setIsLoading(true);
 
-      const res = await API.post("/api/auth/login", { email, password });
+      const res = await API.post("/api/auth/login", {
+        email,
+        password,
+        role: role === "recruiter" ? "recruiter" : "candidate",
+      });
 
       const userData = {
+        id: res.data.user.id || res.data.user._id,
         name: res.data.user.name,
         email: res.data.user.email,
+        role: res.data.user.role || (role === "recruiter" ? "recruiter" : "user"),
         token: res.data.token,
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
 
       setToast({
-        message: "Login successful",
+        message: res.data.message || `Login successful as ${userData.role === "recruiter" ? "Recruiter" : "Candidate"}`,
         type: "success",
       });
 
@@ -217,10 +232,45 @@ const LoginPage = () => {
             <div className={s.cardInner}>
               {view === "login" && (
                 <>
-                  <h2 className={s.headerTitle}>Sign in to Job Portal</h2>
+                  <h2 className={s.headerTitle}>
+                    Sign in as{" "}
+                    <span className={role === "recruiter" ? "text-purple-600" : "text-blue-600"}>
+                      {role === "recruiter" ? "Recruiter" : "Candidate"}
+                    </span>
+                  </h2>
                   <p className={s.headerSubtitle}>
-                    Access your applications, saved jobs, and profile.
+                    {role === "recruiter"
+                      ? "Access your candidate applications, job postings, and hiring tools."
+                      : "Access your applications, saved jobs, and career profile."}
                   </p>
+
+                  {/* Candidate / Recruiter Segmented Toggle */}
+                  <div className="flex bg-gray-100 p-1 rounded-xl mb-6 border border-gray-200 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => setRole("candidate")}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                        role === "candidate"
+                          ? "bg-white text-blue-600 shadow-md font-bold scale-[1.01]"
+                          : "text-gray-500 hover:text-gray-800"
+                      }`}
+                    >
+                      <User className="w-4 h-4" />
+                      <span>Candidate</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole("recruiter")}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                        role === "recruiter"
+                          ? "bg-linear-to-r from-purple-600 to-indigo-600 text-white shadow-md font-bold scale-[1.01]"
+                          : "text-gray-500 hover:text-gray-800"
+                      }`}
+                    >
+                      <Building2 className="w-4 h-4" />
+                      <span>Recruiter</span>
+                    </button>
+                  </div>
 
                   <form onSubmit={handleSubmit} className={s.form}>
                     <div>
@@ -233,7 +283,7 @@ const LoginPage = () => {
                           onChange={(e) => setEmail(e.target.value)}
                           required
                           className={s.inputField}
-                          placeholder="you@domain.com"
+                          placeholder={role === "recruiter" ? "recruiter@company.com" : "candidate@domain.com"}
                         />
                       </div>
                     </div>
@@ -280,13 +330,15 @@ const LoginPage = () => {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className={s.submitButton}
+                      className={role === "recruiter"
+                        ? "w-full cursor-pointer bg-linear-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 rounded-full hover:scale-105 transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                        : s.submitButton}
                     >
                       {isLoading ? (
                         "Signing in..."
                       ) : (
                         <>
-                          <LogIn className="w-5 h-5" /> Sign In
+                          <LogIn className="w-5 h-5" /> Sign In as {role === "recruiter" ? "Recruiter" : "Candidate"}
                         </>
                       )}
                     </button>
@@ -407,8 +459,8 @@ const LoginPage = () => {
               <div className={s.signupContainer}>
                 <p className={s.signupText}>
                   Don't have an account?{" "}
-                  <Link to="/signup" className={s.signupLink}>
-                    Create profile
+                  <Link to={`/signup?role=${role}`} className={s.signupLink}>
+                    {role === "recruiter" ? "Create Recruiter profile" : "Create Candidate profile"}
                   </Link>
                 </p>
               </div>

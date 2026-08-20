@@ -37,7 +37,13 @@ export const register = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const userRole = role || "user";
+        let userRole = "user";
+        if (role) {
+            const normalized = role.toLowerCase().trim();
+            if (normalized === "recruiter") userRole = "recruiter";
+            else if (normalized === "candidate" || normalized === "user") userRole = "user";
+            else if (normalized === "admin") userRole = "admin";
+        }
 
         // Generate 6-digit OTP
         const verificationOTP = Math.floor(100000 + Math.random() * 900000).toString();
@@ -92,7 +98,7 @@ export const login = async (req, res) => {
     try {
         if (!ensureDatabaseReady(res)) return;
 
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         const user = await User.findOne({ email });
         if (!user) {
@@ -117,13 +123,27 @@ export const login = async (req, res) => {
             })
         }
 
+        // If user logged in via recruiter tab, ensure recruiter role is assigned
+        if (role) {
+            const normalized = role.toLowerCase().trim();
+            if (normalized === "recruiter" && user.role !== "admin" && user.role !== "recruiter") {
+                user.role = "recruiter";
+                await user.save();
+            } else if ((normalized === "candidate" || normalized === "user") && user.role === "recruiter") {
+                // If they explicitly logged in as candidate, switch or retain
+                user.role = "user";
+                await user.save();
+            }
+        }
+
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" })
 
         res.status(200).json({
             success: true,
-            message: "Login successful",
+            message: `Login successful as ${user.role === "recruiter" ? "Recruiter" : user.role === "admin" ? "Admin" : "Candidate"}`,
             token,
             user: {
+                id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role

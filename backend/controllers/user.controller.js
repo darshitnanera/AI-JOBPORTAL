@@ -39,8 +39,8 @@ export const updateProfile = async (req, res) => {
     if (email) updateData.email = email;
     if (phone) updateData.phone = phone;
 
-    // Resume upload only for job seekers
-    if (req.file && req.user.role === "user") {
+    // Resume upload only for job seekers / candidates
+    if (req.file && (req.user.role === "user" || req.user.role === "candidate")) {
       const originalName = req.file.originalname;
       const extension = originalName.split('.').pop().toLowerCase();
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
   User,
   Mail,
@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
+  Building2,
 } from "lucide-react";
 import API from "../../utils/api";
 import { signUpPageStyles as s } from "../../assets/dummyStyles";
@@ -57,6 +58,12 @@ const Toast = ({ message, type = "success", onClose }) => {
 
 const SignUpPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+  const initialRole = searchParams.get("role") === "recruiter" ? "recruiter" : "candidate";
+
+  const [role, setRole] = useState(initialRole); // "candidate" | "recruiter"
 
   // Form state
   const [formData, setFormData] = useState({
@@ -113,7 +120,10 @@ const SignUpPage = () => {
     if (!validateForm()) return;
     try {
       setIsLoading(true);
-      const res = await API.post("/api/auth/register", formData);
+      const res = await API.post("/api/auth/register", {
+        ...formData,
+        role: role === "recruiter" ? "recruiter" : "user",
+      });
       setToast({ message: res.data.message, type: "success" });
       setIsVerifying(true); // Switch to OTP UI
     } catch (err) {
@@ -192,13 +202,53 @@ const SignUpPage = () => {
           <div className={s.animatedBorder}>
             <div className={s.animatedBorderInner}>
               <h2 className={s.title}>
-                {isVerifying ? "Verify Code" : "Join JobPortal"}
+                {isVerifying ? (
+                  "Verify Code"
+                ) : (
+                  <>
+                    Join as{" "}
+                    <span className={role === "recruiter" ? "text-purple-600" : "text-blue-600"}>
+                      {role === "recruiter" ? "Recruiter" : "Candidate"}
+                    </span>
+                  </>
+                )}
               </h2>
               <p className={s.subtitle}>
                 {isVerifying
                   ? `We've sent a 6-digit code to ${formData.email}`
-                  : "Create your account and start your journey."}
+                  : role === "recruiter"
+                    ? "Create your recruiter account to find top talent."
+                    : "Create your candidate profile to find your dream job."}
               </p>
+
+              {!isVerifying && (
+                <div className="flex bg-gray-100 p-1 rounded-xl mb-6 border border-gray-200 shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => setRole("candidate")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                      role === "candidate"
+                        ? "bg-white text-blue-600 shadow-md font-bold scale-[1.01]"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Candidate</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole("recruiter")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                      role === "recruiter"
+                        ? "bg-linear-to-r from-purple-600 to-indigo-600 text-white shadow-md font-bold scale-[1.01]"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    <Building2 className="w-4 h-4" />
+                    <span>Recruiter</span>
+                  </button>
+                </div>
+              )}
 
               {isVerifying ? (
                 <form onSubmit={handleVerifyOTP} className={s.formVerifying}>
@@ -326,14 +376,16 @@ const SignUpPage = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={s.submitButton}
+                    className={role === "recruiter"
+                      ? "w-full cursor-pointer bg-linear-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 rounded-full hover:scale-105 transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                      : s.submitButton}
                   >
                     {isLoading ? (
                       "Creating account..."
                     ) : (
                       <>
                         <CheckCircle className={s.buttonIcon} />
-                        <span>Sign Up</span>
+                        <span>Sign Up as {role === "recruiter" ? "Recruiter" : "Candidate"}</span>
                       </>
                     )}
                   </button>
@@ -344,7 +396,7 @@ const SignUpPage = () => {
                 <div className={s.footer}>
                   <p className={s.footerText}>
                     Already have an account?{" "}
-                    <Link to="/login" className={s.footerLink}>
+                    <Link to={`/login?role=${role}`} className={s.footerLink}>
                       Sign in
                     </Link>
                   </p>
