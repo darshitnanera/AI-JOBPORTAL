@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { dashboardStyles as s, statColors } from "../../assets/dummyStyles";
+import API from "../../utils/api";
 
 const Dashboard = () => {
   // Filter state
@@ -23,9 +24,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dashboardStats, setDashboardStats] = useState({
     totalJobs: "0",
-    closedJobs: "0",
     totalApplicants: "0",
-    totalCompanies: "0",
+    shortlisted: "0",
+    closedJobs: "0",
   });
   const [toast, setToast] = useState(null);
   const [jobs, setJobs] = useState([]);
@@ -43,27 +44,15 @@ const Dashboard = () => {
         }
 
         // Fetch Stats
-        const statsRes = await fetch(
-          "/api/job/admin/stats",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        const statsData = await statsRes.json();
-        if (statsData.success) {
-          setDashboardStats(statsData.stats);
+        const statsRes = await API.get("/api/job/admin/stats");
+        if (statsRes.data.success) {
+          setDashboardStats(statsRes.data.stats);
         }
 
         // Fetch Jobs
-        const jobsRes = await fetch(
-          "/api/job/admin/jobs",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        const jobsData = await jobsRes.json();
-        if (jobsData.success) {
-          const mappedJobs = jobsData.jobs.map((j) => ({
+        const jobsRes = await API.get("/api/job/admin/jobs");
+        if (jobsRes.data.success) {
+          const mappedJobs = jobsRes.data.jobs.map((j) => ({
             id: j._id,
             name: j.companyName,
             role: j.roleName,
@@ -108,36 +97,16 @@ const Dashboard = () => {
     setToast(null);
 
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/job/${jobId}/close`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await res.json();
-      if (data.success) {
+      const res = await API.patch(`/api/job/${jobId}/close`);
+      if (res.data.success) {
         setToast({ message: "Job closed successfully!", type: "success" });
         // Refresh stats and jobs list
-        const statsRes = await fetch(
-          "/api/job/admin/stats",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        const statsData = await statsRes.json();
-        if (statsData.success) setDashboardStats(statsData.stats);
+        const statsRes = await API.get("/api/job/admin/stats");
+        if (statsRes.data.success) setDashboardStats(statsRes.data.stats);
 
-        const jobsRes = await fetch(
-          "/api/job/admin/jobs",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        const jobsData = await jobsRes.json();
-        if (jobsData.success) {
-          const mappedJobs = jobsData.jobs.map((j) => ({
+        const jobsRes = await API.get("/api/job/admin/jobs");
+        if (jobsRes.data.success) {
+          const mappedJobs = jobsRes.data.jobs.map((j) => ({
             id: j._id,
             name: j.companyName,
             role: j.roleName,

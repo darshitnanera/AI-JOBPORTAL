@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../../utils/api";
 import {
   Edit3,
   Trash2,
@@ -108,10 +108,7 @@ export default function ListJobs() {
 
   const fetchJobs = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get("/api/job/admin/jobs", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.get("/api/job/admin/jobs");
       if (res.data.success) {
         setJobs(res.data.jobs.map(mapBackToFrontend));
       }
@@ -150,10 +147,7 @@ export default function ListJobs() {
     if (!window.confirm("Delete this job? This action cannot be undone."))
       return;
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.delete(`/api/job/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.delete(`/api/job/${id}`);
       if (res.data.success) {
         setJobs((prev) => prev.filter((j) => j.id !== id));
         setToast({ type: "success", text: "Job deleted successfully" });
@@ -233,13 +227,12 @@ export default function ListJobs() {
         formDataToSend.append("companyLogo", blob, "logo.png");
       }
 
-      const res = await axios.put(
+      const res = await API.put(
         `/api/job/${editingJob.id}`,
         formDataToSend,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         },
       );

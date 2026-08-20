@@ -1,8 +1,8 @@
 import express from "express";
-import 'dotenv/config'
+import "dotenv/config";
+import cors from "cors";
 import { connectDB } from "./config/db.js";
 
-import cors from "cors";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import companyRouter from "./routes/company.routes.js";
@@ -29,28 +29,74 @@ if (missingEnv.length) {
     console.warn("Warning - missing environment variables:", missingEnv.join(", ")); // warn in development
   }
 }
-//middleware
+
+// Global middlewares
 app.use(express.json());
 
-// Configure CORS using an environment-driven allowlist. Set CORS_ORIGINS as a comma-separated list in production (e.g. in Render/Railway).
-const defaultOrigins = "http://localhost:5173,http://localhost:5174,https://jobportal-issmtuopx-darshitnanera544-4827s-projects.vercel.app,https://ai-jobportal-71nn.vercel.app,https://ai-jobportal-six.vercel.app";
-const allowedOrigins = (process.env.CORS_ORIGINS || defaultOrigins).split(",").map((s) => s.trim()).filter(Boolean);
+// --- Robust CORS Configuration ---
+const defaultOrigins = [
+  "https://jobportal-app-three.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "http://localhost:5000",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow non-browser requests like curl/postman when origin is undefined
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error(`CORS policy: origin ${origin} not allowed`), false);
-    },
-    credentials: true,
-  })
-);
+// Helper to normalize origins (strip trailing slashes)
+const normalizeOrigin = (url) => (url ? url.trim().replace(/\/+$/, "") : "");
+
+// Collect configured origins from CLIENT_URL and CORS_ORIGINS
+const envClientOrigins = [
+  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : []),
+  ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",") : []),
+  ...defaultOrigins,
+]
+  .map(normalizeOrigin)
+  .filter(Boolean);
+
+const allowedOriginsSet = new Set(envClientOrigins);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g. server-to-server, curl, Postman, health checks)
+    if (!origin) return callback(null, true);
+
+    const normalized = normalizeOrigin(origin);
+
+    // Check allowlist
+    if (allowedOriginsSet.has(normalized)) {
+      return callback(null, true);
+    }
+
+    // Allow Vercel preview/branch deployments matching jobportal domain pattern
+    if (/^https:\/\/[a-z0-9-]+-.*\.vercel\.app$/i.test(normalized) || normalized.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+
+    console.warn(`[CORS Blocked] Origin not allowed: ${origin}`);
+    return callback(new Error(`CORS policy: origin ${origin} not allowed`), false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+  ],
+  exposedHeaders: ["Content-Disposition", "Content-Length"],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use("/uploads", express.static("uploads"));
 
-//routes
+// Routes
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/company", companyRouter);
@@ -61,9 +107,13 @@ app.use("/api/application", applicationRouter);
 app.use("/api/saved", savedRouter);
 app.use("/api/inquiry", inquiryRouter);
 
-//test route
+// Health check / test route
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.status(200).json({
+    status: "ok",
+    message: "AI-JobPortal Backend API is running...",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.listen(PORT, () => {

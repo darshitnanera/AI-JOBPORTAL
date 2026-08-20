@@ -1,6 +1,5 @@
-// src/pages/CompanyQuestionPage.jsx
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import API from "../../utils/api";
 import {
   Building2,
   Upload,
@@ -265,15 +264,12 @@ const CompanyQuestionPage = () => {
         }
         formDataToSend.append("questionsData", JSON.stringify(parsedQuestions));
 
-        const token = localStorage.getItem("token");
-
-        const response = await axios.post(
+        const response = await API.post(
           "/api/interview",
           formDataToSend,
           {
             headers: {
               "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${token}`,
             },
           },
         );

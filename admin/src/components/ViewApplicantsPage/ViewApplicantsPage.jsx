@@ -9,6 +9,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { viewApplicantsPageStyles as s } from "../../assets/dummyStyles";
+import { apiUrl } from "../../utils/api";
 
 const ViewApplicantsPage = () => {
   const location = useLocation();
@@ -27,7 +28,7 @@ const ViewApplicantsPage = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(
-          `/api/application/${jobId}/applicants`,
+          apiUrl(`/api/application/${jobId}/applicants`),
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -68,7 +69,7 @@ const ViewApplicantsPage = () => {
 
   const handleViewResume = (resumeUrl, userId) => {
     if (!resumeUrl) return;
-    const fullUrl = `/api/user/resume/${userId}`;
+    const fullUrl = apiUrl(`/api/user/resume/${userId}`);
     const link = document.createElement("a");
     link.href = fullUrl;
     link.target = "_blank";

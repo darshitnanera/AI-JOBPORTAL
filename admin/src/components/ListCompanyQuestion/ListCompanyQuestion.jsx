@@ -13,7 +13,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import axios from "axios";
+import API from "../../utils/api";
 import { listCompanyQuestionStyles as s } from "../../assets/dummyStyles";
 
 const API_URL = "/api/interview";
@@ -142,7 +142,7 @@ const ListCompanyQuestion = () => {
   const fetchCompanies = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/companies`);
+      const response = await API.get(`${API_URL}/companies`);
       if (response.data.success) {
         setCompanies(response.data.companies);
       }
@@ -204,10 +204,7 @@ const ListCompanyQuestion = () => {
       `Delete "${name}"?`,
       async ({ id }) => {
         try {
-          const token = localStorage.getItem("token");
-          const response = await axios.delete(`${API_URL}/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await API.delete(`${API_URL}/${id}`);
           if (response.data.success) {
             setCompanies((prev) => prev.filter((x) => (x._id || x.id) !== id));
             showToast("Company deleted successfully!", "success");
@@ -353,13 +350,12 @@ const ListCompanyQuestion = () => {
         }
       }
 
-      const response = await axios.put(
+      const response = await API.put(
         `${API_URL}/${editingCompany._id}`,
         formDataToSend,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         },
       );

@@ -10,7 +10,7 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
-import axios from "axios";
+import API from "../../utils/api";
 import { listRoleQuestionStyles as s } from "../../assets/dummyStyles";
 
 /* -------------------- Utilities for CSV Parsing -------------------- */
@@ -150,7 +150,7 @@ const ListRoleQuestion = () => {
   const fetchRoles = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
+      const response = await API.get(
         "/api/interview/roles",
       );
       if (response.data.success) {
@@ -325,12 +325,11 @@ const ListRoleQuestion = () => {
         );
       }
 
-      const response = await axios.put(
+      const response = await API.put(
         `/api/interview/role/${id}`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         },
@@ -371,14 +370,8 @@ const ListRoleQuestion = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.delete(
+      const response = await API.delete(
         `/api/interview/role/${deleteRoleId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
       );
 
       if (response.data.success) {

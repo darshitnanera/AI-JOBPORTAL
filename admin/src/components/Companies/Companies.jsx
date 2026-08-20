@@ -9,9 +9,8 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import axios from "axios";
+import API from "../../utils/api";
 import { companiesPageStyles as s } from "../../assets/dummyStyles";
-import { apiUrl } from "../../utils/api";
 
 const Companies = () => {
   const [logoFile, setLogoFile] = useState(null);
@@ -28,14 +27,7 @@ const Companies = () => {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        const res = await axios.get(apiUrl("/api/company/"), {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        const res = await API.get("/api/company/");
         setCompanies(res.data.companies);
       } catch (err) {
         console.error(err);
@@ -93,18 +85,16 @@ const Companies = () => {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
-
       const formData = new FormData();
       formData.append("logo", logoFile);
       formData.append("website", website.trim());
 
-      const res = await axios.post(
-        apiUrl("/api/company"),
+      const res = await API.post(
+        "/api/company",
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
         },
       );
@@ -137,15 +127,7 @@ const Companies = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        apiUrl(`/api/company/${pendingDeleteId}`),
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      await API.delete(`/api/company/${pendingDeleteId}`);
 
       setCompanies((prev) => prev.filter((c) => c._id !== pendingDeleteId));
       setPendingDeleteId(null);

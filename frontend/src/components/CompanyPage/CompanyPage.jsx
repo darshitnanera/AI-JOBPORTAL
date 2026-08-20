@@ -12,8 +12,7 @@ import {
 } from "lucide-react";
 import Toast from "../Common/Toast";
 import { companyPageStyles as s } from "../../assets/dummyStyles";
-import axios from "axios";
-import { API_BASE_URL, apiUrl } from "../../utils/api";
+import API, { apiUrl } from "../../utils/api";
 
 const STORAGE_KEY = "savedQuestionIds";
 const ToastImport = Toast; // for checking
@@ -50,9 +49,7 @@ const CompanyPage = () => {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/interview/companies`,
-        );
+        const response = await API.get("/api/interview/companies");
         if (response.data.success) {
           setCompanies(response.data.companies);
 
@@ -107,8 +104,8 @@ const CompanyPage = () => {
     const fetchQuestions = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/interview/company/${selectedCompany}`,
+        const response = await API.get(
+          `/api/interview/company/${selectedCompany}`,
         );
         if (response.data.success) {
           setInterviewQuestions(response.data.questions);

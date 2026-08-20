@@ -11,7 +11,7 @@ import {
   Calendar,
   Loader2,
 } from "lucide-react";
-import axios from "axios";
+import API from "../../utils/api";
 import { roleQuestionPageStyles as s } from "../../assets/dummyStyles";
 
 /* -------------------- Utilities (unchanged) -------------------- */
@@ -208,13 +208,12 @@ const RoleQuestionPage = () => {
 
       formDataToSend.append("questionsData", JSON.stringify(questions));
 
-      const response = await axios.post(
+      const response = await API.post(
         "/api/interview/role",
         formDataToSend,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         },
       );

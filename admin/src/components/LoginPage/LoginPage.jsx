@@ -11,9 +11,8 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import axios from "axios";
+import API from "../../utils/api";
 import { loginPageStyles as s } from "../../assets/dummyStyles";
-import { apiUrl } from "../../utils/api";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -47,7 +46,7 @@ const LoginPage = () => {
       return;
     }
     try {
-      const res = await axios.post(apiUrl("/api/auth/login"), {
+      const res = await API.post("/api/auth/login", {
         email,
         password,
       });

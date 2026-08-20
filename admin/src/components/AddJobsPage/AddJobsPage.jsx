@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import API from "../../utils/api";
 import {
   Briefcase,
   Building2,
@@ -20,7 +20,6 @@ import {
   Loader2,
 } from "lucide-react";
 import { addJobsPageStyles as s } from "../../assets/dummyStyles";
-import { apiUrl } from "../../utils/api";
 
 // Toast component
 const Toast = ({ message, type, onClose }) => {
@@ -399,15 +398,12 @@ const AddJobsPage = () => {
           formDataToSend.append("companyLogo", formData.image);
         }
 
-        const token = localStorage.getItem("token");
-
-        const response = await axios.post(
-          apiUrl("/api/job"),
+        const response = await API.post(
+          "/api/job",
           formDataToSend,
           {
             headers: {
               "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${token}`,
             },
           },
         );

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { careerPageStyles as s } from "../../assets/dummyStyles";
-import { API_BASE_URL } from "../../utils/api";
+import API from "../../utils/api";
 
 const Career = () => {
   const [companies, setCompanies] = useState([]);
@@ -10,7 +9,7 @@ const Career = () => {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/api/company`);
+        const res = await API.get("/api/company");
         const nextCompanies = Array.isArray(res.data?.companies)
           ? res.data.companies
           : [];
