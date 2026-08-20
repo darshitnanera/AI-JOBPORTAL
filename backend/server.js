@@ -91,12 +91,8 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-// Apply CORS to every request
+// Apply CORS globally to all incoming requests (handles GET, POST, PUT, DELETE, OPTIONS, etc.)
 app.use(cors(corsOptions));
-
-// Explicitly handle OPTIONS preflight for all routes.
-// NOTE: Express 5 / path-to-regexp v8 does NOT allow bare "*" — use "/(.*)" instead.
-app.options("/(.*)", cors(corsOptions));
 
 // ─── Body Parsing ────────────────────────────────────────────────────────────
 app.use(express.json());
