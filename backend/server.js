@@ -1,7 +1,11 @@
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import { connectDB } from "./config/db.js";
+import { setupSocketManager } from "./services/socketManager.service.js";
+import { initializeCronJobs } from "./services/cronJobs.service.js";
 
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
@@ -12,11 +16,28 @@ import aiSuggestionRouter from "./routes/aiSuggestion.routes.js";
 import applicationRouter from "./routes/application.routes.js";
 import savedRouter from "./routes/saved.routes.js";
 import inquiryRouter from "./routes/inquiry.routes.js";
+import resumeRouter from "./routes/resume.routes.js";
+import recruiterRouter from "./routes/recruiter.routes.js";
+import jobMatchRouter from "./routes/jobMatch.routes.js";
+import messageRouter from "./routes/message.routes.js";
+import integrationsRouter from "./routes/integrations.routes.js";
+import adminRouter from "./routes/admin.routes.js";
+import mockInterviewRouter, { examResultsRouter } from "./routes/mockInterview.routes.js";
 
 const PORT = process.env.PORT || 5000;
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+  }
+});
 
 connectDB();
+setupSocketManager(io);
+initializeCronJobs();
 
 // Validate important environment variables. In production, fail fast if missing.
 const requiredEnv = ["MONGO_URI", "JWT_SECRET"];
@@ -106,11 +127,20 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/company", companyRouter);
 app.use("/api/job", jobRouter);
+app.use("/api/job-match", jobMatchRouter);
 app.use("/api/interview", interviewRouter);
 app.use("/api/ai-suggestion", aiSuggestionRouter);
 app.use("/api/application", applicationRouter);
 app.use("/api/saved", savedRouter);
 app.use("/api/inquiry", inquiryRouter);
+app.use("/api/resume", resumeRouter);
+app.use("/api/recruiter", recruiterRouter);
+app.use("/api/messages", messageRouter);
+app.use("/api/integrations", integrationsRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/mock-interview", mockInterviewRouter);
+// Alias so the Candidate Dashboard's GET /api/exam/results resolves.
+app.use("/api/exam", examResultsRouter);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
@@ -123,6 +153,7 @@ app.get("/", (req, res) => {
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`[Server] Started on port ${PORT}`);
+  console.log(`[WebSocket] Listening on /messages namespace`);
 });

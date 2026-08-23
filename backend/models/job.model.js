@@ -71,9 +71,22 @@ const jobSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        postedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
+        },
+        applicationCount: {
+            type: Number,
+            default: 0,
+        },
+        expiresAt: {
+            type: Date,
+            default: null,
+        },
         status: {
             type: String,
-            enum: ["active", "closed"],
+            enum: ["active", "closed", "expired"],
             default: "active",
         },
     },

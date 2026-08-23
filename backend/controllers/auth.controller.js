@@ -24,7 +24,7 @@ export const register = async (req, res) => {
     try {
         if (!ensureDatabaseReady(res)) return;
 
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, userType } = req.body;
 
         const userExist = await User.findOne({ email });
 
@@ -38,25 +38,62 @@ export const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         let userRole = "user";
-        if (role) {
+        let type = "candidate";
+
+        if (userType) {
+            const normalizedType = userType.toLowerCase().trim();
+            if (normalizedType === "recruiter") {
+                userRole = "recruiter";
+                type = "recruiter";
+            } else if (normalizedType === "admin") {
+                userRole = "admin";
+                type = "admin";
+            } else {
+                type = "candidate";
+            }
+        } else if (role) {
             const normalized = role.toLowerCase().trim();
-            if (normalized === "recruiter") userRole = "recruiter";
-            else if (normalized === "candidate" || normalized === "user") userRole = "user";
-            else if (normalized === "admin") userRole = "admin";
+            if (normalized === "recruiter") {
+                userRole = "recruiter";
+                type = "recruiter";
+            }
+            else if (normalized === "candidate" || normalized === "user") {
+                userRole = "user";
+                type = "candidate";
+            }
+            else if (normalized === "admin") {
+                userRole = "admin";
+                type = "admin";
+            }
         }
 
         // Generate 6-digit OTP
         const verificationOTP = Math.floor(100000 + Math.random() * 900000).toString();
         const verificationOTPExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-        const user = await User.create({
+        // Initialize user data
+        const userData = {
             name,
             email,
             password: hashedPassword,
             role: userRole,
+            userType: type,
             verificationOTP,
             verificationOTPExpires
-        });
+        };
+
+        // Initialize recruiter profile if recruiter
+        if (type === "recruiter") {
+            userData.recruiterProfile = {
+                companyName: "",
+                companyWebsite: "",
+                industryType: "",
+                companySize: "",
+                isVerified: false
+            };
+        }
+
+        const user = await User.create(userData);
 
         // In development without email credentials, auto-verify so sign-up can work end-to-end.
         if (hasEmailConfiguration()) {
@@ -81,7 +118,9 @@ export const register = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                isVerified: user.isVerified
+                userType: user.userType,
+                isVerified: user.isVerified,
+                profileCompleted: user.profileCompleted
             }
         });
 
@@ -136,7 +175,7 @@ export const login = async (req, res) => {
             }
         }
 
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" })
+        const token = jwt.sign({ id: user._id, role: user.role, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: "7d" })
 
         res.status(200).json({
             success: true,
@@ -146,7 +185,10 @@ export const login = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                userType: user.userType,
+                profileCompleted: user.profileCompleted,
+                recruiterProfile: user.recruiterProfile
             }
         });
     } catch (err) {
@@ -191,6 +233,65 @@ export const verifyEmail = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Email verified successfully. You can now log in.",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                userType: user.userType,
+                profileCompleted: user.profileCompleted
+            }
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+        });
+    }
+}
+
+export const completeProfile = async (req, res) => {
+    try {
+        if (!ensureDatabaseReady(res)) return;
+
+        const { userId, recruiterProfile } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required",
+            });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        if (user.userType === "recruiter" && recruiterProfile) {
+            user.recruiterProfile.companyName = recruiterProfile.companyName || "";
+            user.recruiterProfile.companyWebsite = recruiterProfile.companyWebsite || "";
+            user.recruiterProfile.industryType = recruiterProfile.industryType || "";
+            user.recruiterProfile.companySize = recruiterProfile.companySize || "";
+        }
+
+        user.profileCompleted = true;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Profile completed successfully",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                userType: user.userType,
+                profileCompleted: user.profileCompleted,
+                recruiterProfile: user.recruiterProfile
+            }
         });
     } catch (err) {
         res.status(500).json({

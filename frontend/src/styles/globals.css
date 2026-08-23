@@ -1,0 +1,332 @@
+@import "tailwindcss";
+
+/* Make the `dark:` variant follow BOTH the OS preference and an explicit
+   [data-theme="dark"] on the root. Without this, Tailwind v4's dark: variant
+   only tracks prefers-color-scheme, so the [data-theme] overrides defined
+   below would style the surface variables while every dark: utility ignored
+   them — the two theming mechanisms would disagree. */
+@custom-variant dark {
+  /* 1. Explicit opt-in wins in both directions. */
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  /* 2. Otherwise fall back to the OS preference, unless light was pinned. */
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+/* ============================================================
+   DESIGN SYSTEM — Tailwind v4 theme tokens
+   Defining tokens here generates real utilities (bg-brand-600,
+   text-ink-900, font-sans, ...). A v3 tailwind.config.js is
+   IGNORED by @tailwindcss/vite, so all tokens must live here.
+   ============================================================ */
+@theme {
+  /* Typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Brand — indigo ramp */
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+  --color-brand-950: #1e1b4b;
+
+  /* Accent — violet, for gradients/highlights */
+  --color-accent-400: #a78bfa;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #7c3aed;
+
+  /* Semantic */
+  --color-success-50: #f0fdf4;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+
+  --color-danger-50: #fef2f2;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+
+  /* Aliases kept so the primitives under src/components/ui resolve.
+     They were authored against "primary", "error" and "secondary" colour
+     names that were never defined here, so every one of them rendered
+     unstyled. Tailwind v4 ships "neutral" by default, so it needs no alias. */
+  --color-primary-50: var(--color-brand-50);
+  --color-primary-100: var(--color-brand-100);
+  --color-primary-200: var(--color-brand-200);
+  --color-primary-300: var(--color-brand-300);
+  --color-primary-400: var(--color-brand-400);
+  --color-primary-500: var(--color-brand-500);
+  --color-primary-600: var(--color-brand-600);
+  --color-primary-700: var(--color-brand-700);
+  --color-primary-800: var(--color-brand-800);
+  --color-primary-900: var(--color-brand-900);
+  --color-primary-950: var(--color-brand-950);
+
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  --color-error-950: #450a0a;
+
+  --color-secondary-50: #f5f3ff;
+  --color-secondary-100: #ede9fe;
+  --color-secondary-200: #ddd6fe;
+  --color-secondary-300: #c4b5fd;
+  --color-secondary-400: #a78bfa;
+  --color-secondary-500: #8b5cf6;
+  --color-secondary-600: #7c3aed;
+  --color-secondary-700: #6d28d9;
+  --color-secondary-800: #5b21b6;
+  --color-secondary-900: #4c1d95;
+  --color-secondary-950: #2e1065;
+
+  /* Elevation */
+  --shadow-card: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.06);
+  --shadow-card-hover: 0 20px 25px -5px rgb(15 23 42 / 0.1), 0 8px 10px -6px rgb(15 23 42 / 0.1);
+
+  /* Motion */
+  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-slide-up: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   SEMANTIC SURFACE VARIABLES (light + dark)
+   Only these are redefined per-theme. Never define a color
+   solely inside a media/[data-theme] block.
+   ============================================================ */
+:root {
+  --surface-page: #f8fafc;      /* slate-50  */
+  --surface-card: #ffffff;
+  --surface-muted: #f1f5f9;     /* slate-100 */
+  --border-subtle: #e2e8f0;     /* slate-200 */
+  --text-strong: #0f172a;       /* slate-900 */
+  --text-body: #475569;         /* slate-600 */
+  --text-muted: #94a3b8;        /* slate-400 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-page: #020617;    /* slate-950 */
+    --surface-card: #0f172a;    /* slate-900 */
+    --surface-muted: #1e293b;   /* slate-800 */
+    --border-subtle: #1e293b;
+    --text-strong: #f1f5f9;     /* slate-100 */
+    --text-body: #cbd5e1;       /* slate-300 */
+    --text-muted: #64748b;      /* slate-500 */
+  }
+}
+
+:root[data-theme="dark"] {
+  --surface-page: #020617;
+  --surface-card: #0f172a;
+  --surface-muted: #1e293b;
+  --border-subtle: #1e293b;
+  --text-strong: #f1f5f9;
+  --text-body: #cbd5e1;
+  --text-muted: #64748b;
+}
+
+/* ============================================================
+   BASE STYLES — MUST be inside @layer base.
+   Unlayered CSS outranks ALL Tailwind utilities regardless of
+   specificity, which is what broke the previous build:
+   a universal padding reset silently killed every spacing utility,
+   and `h1 { color: ... }` killed every text colour utility.
+   ============================================================ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--surface-page);
+    color: var(--text-body);
+    line-height: 1.6;
+    min-height: 100vh;
+    /* never allow a page to scroll sideways */
+    overflow-x: hidden;
+  }
+
+  /* Headings default to high-contrast ink; any text-* utility still wins. */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-strong);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  h1 { font-size: clamp(2rem, 4vw, 3rem); }
+  h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+  h3 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
+  h4 { font-size: 1.125rem; }
+
+  p { text-wrap: pretty; }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Form controls inherit the page font but stay overridable. */
+  input, textarea, select, button {
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-200);
+    color: var(--color-brand-900);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 9999px;
+    border: 2px solid var(--surface-page);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ============================================================
+   REUSABLE COMPONENT CLASSES
+   In @layer components so utilities can still override them.
+   ============================================================ */
+@layer components {
+  .surface-page { background-color: var(--surface-page); }
+  .surface-card { background-color: var(--surface-card); }
+  .surface-muted { background-color: var(--surface-muted); }
+  .text-strong   { color: var(--text-strong); }
+  .text-body     { color: var(--text-body); }
+  .text-subtle   { color: var(--text-muted); }
+  .border-subtle { border-color: var(--border-subtle); }
+
+  /* Card */
+  .ui-card {
+    background-color: var(--surface-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+  }
+  .ui-card-interactive:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+    border-color: var(--color-brand-300);
+  }
+
+  /* Input — high contrast in both themes */
+  .ui-input {
+    width: 100%;
+    background-color: var(--surface-card);
+    color: var(--text-strong);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.75rem;
+    padding: 0.625rem 1rem;
+    box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .ui-input:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px var(--color-brand-100);
+  }
+  :root[data-theme="dark"] .ui-input:focus,
+  .dark .ui-input:focus {
+    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.25);
+  }
+
+  /* Gradient headline — safe, never renders invisible */
+  .text-gradient-brand {
+    background-image: linear-gradient(
+      135deg,
+      var(--color-brand-600),
+      var(--color-accent-500)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Page shell */
+  .page-shell {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px)  { .page-shell { padding-inline: 1.5rem; } }
+  @media (min-width: 1024px) { .page-shell { padding-inline: 2rem; } }
+}
+
+@layer utilities {
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}

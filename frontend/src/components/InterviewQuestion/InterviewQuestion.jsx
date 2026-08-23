@@ -1,11 +1,20 @@
-// InterviewQuestionsPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, CircleArrowOutUpRight } from "lucide-react";
-import { interviewQuestionsStyles as s } from "../../assets/dummyStyles";
+import {
+  AlertCircle,
+  ArrowUpRight,
+  Building2,
+  ChevronRight,
+  RefreshCw,
+  UserRound,
+} from "lucide-react";
 import { apiUrl } from "../../utils/api";
 
-/* ---------- small helper ---------- */
+const CARD =
+  "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900";
+const SECONDARY_BTN =
+  "inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800";
+
 const slugify = (str) =>
   str
     .toString()
@@ -15,212 +24,254 @@ const slugify = (str) =>
     .replace(/[^\w-]+/g, "")
     .replace(/--+/g, "-");
 
+const initialsOf = (name = "") =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase() || "?";
+
+/* ------------------------------------------------------------- fragments */
+
+const CardSkeleton = () => (
+  <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex items-center gap-3">
+      <div className="h-12 w-12 shrink-0 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+        <div className="h-3 w-1/3 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+      </div>
+    </div>
+  </div>
+);
+
+const EntityCard = ({ to, state, logo, name, subtitle, fallbackIcon }) => {
+  const Icon = fallbackIcon;
+  const [imgError, setImgError] = useState(false);
+
+  return (
+    <Link to={to} state={state} className={`${CARD} flex items-center gap-3`}>
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300">
+        {!imgError && logo ? (
+          <img
+            src={logo}
+            alt=""
+            onError={() => setImgError(true)}
+            className="h-full w-full object-contain p-1"
+          />
+        ) : name ? (
+          <span className="text-sm font-bold">{initialsOf(name)}</span>
+        ) : (
+          <Icon size={18} />
+        )}
+      </span>
+
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-base font-bold text-slate-900 dark:text-slate-50">
+          {name}
+        </span>
+        <span className="mt-0.5 block text-sm text-slate-600 dark:text-slate-400">
+          {subtitle}
+        </span>
+      </span>
+
+      <ArrowUpRight size={18} className="shrink-0 text-slate-400" />
+    </Link>
+  );
+};
+
+const Panel = ({
+  title,
+  viewAllLabel,
+  viewAllTo,
+  status,
+  errorMessage,
+  onRetry,
+  items,
+  emptyText,
+  emptyIcon,
+  children,
+}) => {
+  const EmptyIcon = emptyIcon;
+
+  return (
+  <section className="min-w-0">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+        {title}
+      </h2>
+      <Link
+        to={viewAllTo}
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 transition hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+      >
+        {viewAllLabel}
+        <ChevronRight size={16} />
+      </Link>
+    </div>
+
+    <div className="mt-6">
+      {status === "loading" && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      {status === "error" && (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-danger-50 text-danger-600 dark:bg-danger-500/10">
+            <AlertCircle size={20} />
+          </span>
+          <h3 className="text-base font-bold text-slate-900 dark:text-slate-50">
+            Couldn&apos;t load this list
+          </h3>
+          <p className="max-w-sm text-sm text-slate-600 dark:text-slate-400">
+            {errorMessage}
+          </p>
+          <button type="button" className={SECONDARY_BTN} onClick={onRetry}>
+            <RefreshCw size={16} />
+            Try again
+          </button>
+        </div>
+      )}
+
+      {status === "ready" && items.length === 0 && (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300">
+            <EmptyIcon size={20} />
+          </span>
+          <h3 className="text-base font-bold text-slate-900 dark:text-slate-50">
+            Nothing here yet
+          </h3>
+          <p className="max-w-sm text-sm text-slate-600 dark:text-slate-400">{emptyText}</p>
+          <Link to={viewAllTo} className={SECONDARY_BTN}>
+            {viewAllLabel}
+          </Link>
+        </div>
+      )}
+
+      {status === "ready" && items.length > 0 && children}
+    </div>
+  </section>
+  );
+};
+
+/* ------------------------------------------------------------------ page */
+
 export default function InterviewQuestionsPage() {
   const [companies, setCompanies] = useState([]);
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("loading");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [companiesRes, rolesRes] = await Promise.all([
-          fetch(apiUrl("/api/interview/companies")),
-          fetch(apiUrl("/api/interview/roles")),
-        ]);
+  const fetchData = useCallback(async () => {
+    setStatus("loading");
+    setErrorMessage("");
+    try {
+      const [companiesRes, rolesRes] = await Promise.all([
+        fetch(apiUrl("/api/interview/companies")),
+        fetch(apiUrl("/api/interview/roles")),
+      ]);
 
-        const companiesData = companiesRes.ok ? await companiesRes.json() : {};
-        const rolesData = rolesRes.ok ? await rolesRes.json() : {};
+      const companiesData = companiesRes.ok ? await companiesRes.json() : {};
+      const rolesData = rolesRes.ok ? await rolesRes.json() : {};
 
-        if (companiesData.success) {
-          setCompanies(
-            Array.isArray(companiesData.companies)
-              ? companiesData.companies.slice(0, 8)
-              : [],
-          );
-        }
-        if (rolesData.success) {
-          setRoles(Array.isArray(rolesData.roles) ? rolesData.roles.slice(0, 8) : []);
-        }
-      } catch (error) {
-        console.error("Error fetching home page data:", error);
-        setCompanies([]);
-        setRoles([]);
-      } finally {
-        setLoading(false);
+      setCompanies(
+        companiesData.success && Array.isArray(companiesData.companies)
+          ? companiesData.companies.slice(0, 8)
+          : [],
+      );
+      setRoles(
+        rolesData.success && Array.isArray(rolesData.roles)
+          ? rolesData.roles.slice(0, 8)
+          : [],
+      );
+
+      if (!companiesRes.ok && !rolesRes.ok) {
+        setErrorMessage("The interview library didn't respond. Please try again.");
+        setStatus("error");
+        return;
       }
-    };
-    fetchData();
+
+      setStatus("ready");
+    } catch (error) {
+      console.error("Error fetching interview library:", error);
+      setCompanies([]);
+      setRoles([]);
+      setErrorMessage(
+        "We couldn't reach the interview library. Check your connection and try again.",
+      );
+      setStatus("error");
+    }
   }, []);
 
-  if (loading) {
-    return (
-      <div className={s.loadingContainer}>
-        <div className={s.spinner}></div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return (
-    <div className={s.pageContainer}>
-      <div className={s.innerContainer}>
-        <div className={s.mainGrid}>
-          {/* LEFT: Companies */}
-          <div>
-            <section className={s.section}>
-              <div className={s.sectionHeader}>
-                <h2 className={s.sectionTitle}>
-                  Interview questions by Company
-                </h2>
-                <Link to="/companies" className={s.viewAllLink}>
-                  View all companies
-                  <ChevronRight className={s.chevronIcon} />
-                </Link>
-              </div>
+    <div className="bg-slate-50 py-16 dark:bg-slate-950">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-8">
+          <Panel
+            title="Interview questions by company"
+            viewAllLabel="View all companies"
+            viewAllTo="/companies"
+            status={status}
+            errorMessage={errorMessage}
+            onRetry={fetchData}
+            items={companies}
+            emptyIcon={Building2}
+            emptyText="No companies have been added to the interview library yet."
+          >
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              {companies.map((company) => (
+                <EntityCard
+                  key={company._id}
+                  to={`/companies/${company._id}`}
+                  state={{ companyId: company._id }}
+                  logo={company.logo}
+                  name={company.companyName}
+                  subtitle={`${company.questionsCount || 0} interviews`}
+                  fallbackIcon={Building2}
+                />
+              ))}
+            </div>
+          </Panel>
 
-              <div className={s.companiesGrid}>
-                {companies.map((company) => (
-                  <CompanyCard company={company} key={company._id} />
-                ))}
-              </div>
-            </section>
-          </div>
-
-          {/* RIGHT: Roles */}
-          <div>
-            <section className={s.section}>
-              <div className={s.sectionHeader}>
-                <h2 className={s.sectionTitle}>Interview questions by Role</h2>
-                <Link to="/roles" className={s.viewAllLink}>
-                  View all roles
-                  <ChevronRight className={s.chevronIcon} />
-                </Link>
-              </div>
-
-              <div className={s.rolesGrid}>
-                {roles.map((role) => (
-                  <RoleCard role={role} key={role._id} />
-                ))}
-              </div>
-            </section>
-          </div>
+          <Panel
+            title="Interview questions by role"
+            viewAllLabel="View all roles"
+            viewAllTo="/roles"
+            status={status}
+            errorMessage={errorMessage}
+            onRetry={fetchData}
+            items={roles}
+            emptyIcon={UserRound}
+            emptyText="No roles have been added to the interview library yet."
+          >
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              {roles.map((role) => {
+                const slug = slugify(role.roleName || "");
+                return (
+                  <EntityCard
+                    key={role._id}
+                    to={`/roles/${slug}`}
+                    state={{ selectedRoleSlug: slug }}
+                    logo={role.image}
+                    name={role.roleName}
+                    subtitle={`${role.questionsCount || 0} questions`}
+                    fallbackIcon={UserRound}
+                  />
+                );
+              })}
+            </div>
+          </Panel>
         </div>
       </div>
     </div>
-  );
-}
-
-/* ---------- Company card ---------- */
-function CompanyCard({ company }) {
-  const [imgError, setImgError] = useState(false);
-  const initials = company.companyName
-    ? company.companyName
-        .split(" ")
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join("")
-    : "??";
-
-  const colorClass = s.getColorClass("company", company.companyName);
-
-  return (
-    <Link
-      to={`/companies/${company._id}`}
-      state={{ companyId: company._id }}
-      className={s.cardLink}
-    >
-      <div className={s.cardGlow}></div>
-
-      <article className={s.cardArticle}>
-        <div className={s.cardFlex}>
-          <div className={s.cardLeftFlex}>
-            <div
-              className={s.logoContainer(colorClass)}
-              style={{ width: 56, height: 56, overflow: "hidden" }}
-            >
-              {!imgError && company.logo ? (
-                <img
-                  src={company.logo}
-                  alt={`${company.companyName} logo`}
-                  onError={() => setImgError(true)}
-                  className={s.logoImage}
-                />
-              ) : (
-                <span className={s.logoFallbackText}>{initials}</span>
-              )}
-            </div>
-
-            <div>
-              <h3 className={s.cardTitle}>{company.companyName}</h3>
-              <p className={s.cardSubtitle}>
-                {company.questionsCount || "0"} Interviews
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <CircleArrowOutUpRight className={s.cardIcon} />
-          </div>
-        </div>
-      </article>
-    </Link>
-  );
-}
-
-/* ---------- Role card ---------- */
-function RoleCard({ role }) {
-  const [imgError, setImgError] = useState(false);
-  const initials = role.roleName
-    ? role.roleName
-        .split(" ")
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join("")
-    : "??";
-
-  const colorClass = s.getColorClass("role", role.roleName);
-  const slug = slugify(role.roleName);
-
-  return (
-    <Link
-      to={`/roles/${slug}`}
-      state={{ selectedRoleSlug: slug }}
-      className={s.cardLink}
-    >
-      <div className={s.roleCardGlow}></div>
-
-      <article className={s.cardArticle}>
-        <div className={s.cardFlex}>
-          <div className={s.cardLeftFlex}>
-            <div
-              className={s.logoContainer(colorClass)}
-              style={{ width: 56, height: 56, overflow: "hidden" }}
-            >
-              {!imgError && role.image ? (
-                <img
-                  src={role.image}
-                  alt={`${role.roleName} logo`}
-                  onError={() => setImgError(true)}
-                  className={s.logoImage}
-                />
-              ) : (
-                <span className={s.logoFallbackText}>{initials}</span>
-              )}
-            </div>
-
-            <div>
-              <h3 className={s.cardTitle}>{role.roleName}</h3>
-              <p className={s.cardSubtitle}>
-                {role.questionsCount || "0"} Questions
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <CircleArrowOutUpRight className={s.cardIcon} />
-          </div>
-        </div>
-      </article>
-    </Link>
   );
 }

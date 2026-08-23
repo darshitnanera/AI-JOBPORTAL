@@ -1,5 +1,6 @@
 // Footer.jsx
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   Linkedin,
   Twitter,
@@ -16,194 +17,189 @@ import {
   Shield,
   UserCog,
   Bookmark,
-  UserPen,
 } from "lucide-react";
 import Companylogo from "../../assets/hexagonlogo.png";
 import logo from "../../assets/logo.png";
-import { footerStyles as s } from "../../assets/dummyStyles";
+
+/* Only routes that actually exist in App.jsx are linked.
+   (`/contact` was removed — the Contact page no longer exists.) */
+const QUICK_LINKS = [
+  { to: "/jobs", label: "Find Jobs", icon: ArrowRight },
+  { to: "/companies", label: "Companies", icon: Building },
+  { to: "/roles", label: "Roles", icon: UserCog },
+  { to: "/saved", label: "Saved", icon: Bookmark },
+];
+
+const EMPLOYER_LINKS = [
+  { to: "/recruiter/jobs/create", label: "Post a Job", icon: ArrowRight },
+  { to: "/recruiter/dashboard", label: "Employer Dashboard", icon: Briefcase },
+  { to: "/recruiter/jobs", label: "Manage Listings", icon: Award },
+  { to: "/recruiter/applications", label: "Applications", icon: Users },
+  { to: "/companies", label: "Employer Branding", icon: Shield },
+];
+
+const SOCIALS = [
+  { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin },
+  { href: "https://twitter.com", label: "Twitter", icon: Twitter },
+  { href: "https://facebook.com", label: "Facebook", icon: Facebook },
+  { href: "https://instagram.com", label: "Instagram", icon: Instagram },
+];
 
 const Footer = () => {
   return (
-    <footer className={s.footer}>
-      <div className={s.footerInner}>
-        {/* Main Footer Content */}
-        <div className={s.grid}>
-          {/* Company Info */}
-          <div className={s.companySection}>
-            <div className={s.logoWrapper}>
-              <a href="/" aria-label="JobPortal home" className={s.logoLink}>
-                <img src={logo} alt="JobPortal Logo" className={s.logoImage} />
-              </a>
+    <footer className="bg-slate-900 text-slate-300">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          {/* ---------------- Company ---------------- */}
+          <div>
+            <div className="flex items-center gap-3">
+              <Link to="/" aria-label="JobPortal home" className="shrink-0">
+                <img
+                  src={logo}
+                  alt="JobPortal logo"
+                  className="h-11 w-11 rounded-lg object-cover"
+                />
+              </Link>
               <div>
-                <h2 className={s.companyTitle}>JobPortal</h2>
-                <p className={s.companyTagline}>Find Your Dream Job</p>
+                <p className="text-lg font-bold text-white">JobPortal</p>
+                <p className="text-sm text-slate-400">Find Your Dream Job</p>
               </div>
             </div>
-            <p className={s.companyDescription}>
+
+            <p className="mt-4 text-sm text-slate-400">
               Connecting talented professionals with top companies worldwide.
               Your career journey starts here.
             </p>
-            <div className={s.socialIconsContainer}>
-              <SocialIcon
-                href="#"
-                icon={<Linkedin className="w-4 h-4 sm:w-5 sm:h-5" />}
-                label="LinkedIn"
-              />
-              <SocialIcon
-                href="#"
-                icon={<Twitter className="w-4 h-4 sm:w-5 sm:h-5" />}
-                label="Twitter"
-              />
-              <SocialIcon
-                href="#"
-                icon={<Facebook className="w-4 h-4 sm:w-5 sm:h-5" />}
-                label="Facebook"
-              />
-              <SocialIcon
-                href="#"
-                icon={<Instagram className="w-4 h-4 sm:w-5 sm:h-5" />}
-                label="Instagram"
-              />
-            </div>
-          </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className={s.sectionHeader}>Quick Links</h3>
-            <ul className={s.linkList}>
-              <FooterLink
-                href="/jobs"
-                icon={<ArrowRight className="w-4 h-4" />}
-              >
-                Find Jobs
-              </FooterLink>
-              <FooterLink
-                href="/companies"
-                icon={<Building className="w-4 h-4" />}
-              >
-                Companies
-              </FooterLink>
-              <FooterLink href="/roles" icon={<UserCog className="w-4 h-4" />}>
-                Roles
-              </FooterLink>
-              <FooterLink href="/saved" icon={<Bookmark className="w-4 h-4" />}>
-                Saved
-              </FooterLink>
-              <FooterLink
-                href="/contact"
-                icon={<UserPen className="w-4 h-4" />}
-              >
-                Contact
-              </FooterLink>
+            <ul className="mt-6 flex flex-wrap gap-3">
+              {SOCIALS.map(({ href, label, icon: Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-slate-300 transition-all hover:border-brand-500 hover:bg-brand-600 hover:text-white"
+                  >
+                    <Icon size={18} aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* For Employers */}
-          <div>
-            <h3 className={s.sectionHeader}>For Employers</h3>
-            <ul className={s.linkList}>
-              <FooterLink href="/" icon={<ArrowRight className="w-4 h-4" />}>
-                Post a Job
-              </FooterLink>
-              <FooterLink href="/" icon={<Award className="w-4 h-4" />}>
-                Pricing
-              </FooterLink>
-              <FooterLink href="/" icon={<Users className="w-4 h-4" />}>
-                Recruitment Solutions
-              </FooterLink>
-              <FooterLink href="/" icon={<Briefcase className="w-4 h-4" />}>
-                Employer Dashboard
-              </FooterLink>
-              <FooterLink href="/" icon={<Shield className="w-4 h-4" />}>
-                Employer Branding
-              </FooterLink>
+          {/* ---------------- Quick links ---------------- */}
+          <nav aria-label="Quick links">
+            <h2 className="text-base font-semibold text-white">Quick Links</h2>
+            <ul className="mt-4 space-y-3">
+              {QUICK_LINKS.map(({ to, label, icon: Icon }) => (
+                <li key={label}>
+                  <Link
+                    to={to}
+                    className="inline-flex items-center gap-2 text-sm text-slate-300 transition-colors hover:text-white"
+                  >
+                    <Icon
+                      size={16}
+                      aria-hidden="true"
+                      className="text-brand-400"
+                    />
+                    <span>{label}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </div>
+          </nav>
 
-          {/* Contact Info */}
+          {/* ---------------- Employers ---------------- */}
+          <nav aria-label="For employers">
+            <h2 className="text-base font-semibold text-white">
+              For Employers
+            </h2>
+            <ul className="mt-4 space-y-3">
+              {EMPLOYER_LINKS.map(({ to, label, icon: Icon }) => (
+                <li key={label}>
+                  <Link
+                    to={to}
+                    className="inline-flex items-center gap-2 text-sm text-slate-300 transition-colors hover:text-white"
+                  >
+                    <Icon
+                      size={16}
+                      aria-hidden="true"
+                      className="text-brand-400"
+                    />
+                    <span>{label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* ---------------- Contact info (static, not a route) ---------------- */}
           <div>
-            <h3 className={s.sectionHeader}>Contact Us</h3>
-            <div className={s.contactList}>
+            <h2 className="text-base font-semibold text-white">Contact Us</h2>
+            <ul className="mt-4 space-y-3">
               <ContactItem
-                icon={<Mail className="w-4 h-4 sm:w-5 sm:h-5" />}
+                icon={Mail}
                 text="support@jobportal.com"
                 href="mailto:support@jobportal.com"
               />
               <ContactItem
-                icon={<Phone className="w-4 h-4 sm:w-5 sm:h-5" />}
+                icon={Phone}
                 text="+1 (555) 123-4567"
                 href="tel:+15551234567"
               />
               <ContactItem
-                icon={<MapPin className="w-4 h-4 sm:w-5 sm:h-5" />}
+                icon={MapPin}
                 text="123 Career Street, San Francisco, CA"
               />
-            </div>
+            </ul>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className={s.divider} />
-
-        {/* Bottom Footer */}
-        <div className={s.bottomFooter}>
-          <img
-            src={Companylogo}
-            alt="Hexagon Digital Services"
-            className={s.bottomLogo}
-          />
-          <span className={s.designedByText}>Designed by</span>
-          <a
-            href="https://hexagondigitalservices.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={s.designedByLink}
-          >
-            Hexagon Digital Services
-          </a>
+        {/* ---------------- Bottom bar ---------------- */}
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-6 sm:flex-row">
+          <p className="text-sm text-slate-400">
+            &copy; {new Date().getFullYear()} JobPortal. All rights reserved.
+          </p>
+          <div className="flex items-center gap-2 text-sm text-slate-400">
+            <img
+              src={Companylogo}
+              alt=""
+              aria-hidden="true"
+              className="h-5 w-5 object-contain"
+            />
+            <span>Designed by</span>
+            <a
+              href="https://hexagondigitalservices.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-slate-200 transition-colors hover:text-white"
+            >
+              Hexagon Digital Services
+            </a>
+          </div>
         </div>
       </div>
     </footer>
   );
 };
 
-// Social Icon Component
-const SocialIcon = ({ href, icon, label }) => (
-  <a href={href} aria-label={label} className={s.socialIcon}>
-    {icon}
-  </a>
-);
-
-// Footer Link Component
-const FooterLink = ({ href, children, icon }) => (
-  <li>
-    <a href={href} className={s.footerLinkItem}>
-      <span className={s.footerLinkIcon}>{icon}</span>
-      <span className={s.footerLinkText}>{children}</span>
-    </a>
-  </li>
-);
-
-// Contact Item Component
-const ContactItem = ({ icon, text, href }) => (
-  <div className={s.contactItemContainer}>
-    <div className={s.contactIconWrapper}>{icon}</div>
+const ContactItem = ({ icon: Icon, text, href }) => (
+  <li className="flex items-start gap-3">
+    <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-brand-400">
+      <Icon size={16} aria-hidden="true" />
+    </span>
     {href ? (
-      <a href={href} className={s.contactText}>
+      <a
+        href={href}
+        className="min-w-0 wrap-break-word text-sm text-slate-300 transition-colors hover:text-white"
+      >
         {text}
       </a>
     ) : (
-      <span className={s.contactTextNoLink}>{text}</span>
+      <span className="min-w-0 wrap-break-word text-sm text-slate-400">{text}</span>
     )}
-  </div>
-);
-
-// Stat Item Component (kept for compatibility; not used in layout)
-const StatItem = ({ number, label }) => (
-  <div className={s.statItem}>
-    <div className={s.statNumber}>{number}</div>
-    <div className={s.statLabel}>{label}</div>
-  </div>
+  </li>
 );
 
 export default Footer;

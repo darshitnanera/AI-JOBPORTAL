@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+
+<div class="builder">
+
+    <!-- ================= INPUT PANEL ================= -->
+    <div class="form-panel">
+
+        <h1>Resume Builder</h1>
+        <p>Fill your details and generate your resume.</p>
+
+        <h2>Personal Details</h2>
+
+        <input id="name" placeholder="Full Name">
+        <input id="location" placeholder="Location">
+        <input id="phone" placeholder="Phone">
+        <input id="email" placeholder="Email">
+
+        <input id="linkedin" placeholder="LinkedIn">
+        <input id="github" placeholder="GitHub">
+        <input id="leetcode" placeholder="LeetCode">
+
+        <h2>Professional Summary</h2>
+
+        <textarea id="summary"
+            placeholder="Write your professional summary"></textarea>
+
+        <h2>Technical Skills</h2>
+
+        <input id="programming"
+            placeholder="Programming Languages">
+
+        <input id="scripting"
+            placeholder="Scripting Languages">
+
+        <input id="databases"
+            placeholder="Databases">
+
+        <input id="frontend"
+            placeholder="Frontend">
+
+        <input id="backend"
+            placeholder="Backend">
+
+        <input id="tools"
+            placeholder="Tools & Platforms">
+
+        <h2>Education</h2>
+
+        <textarea id="education"
+            placeholder="Enter education details"></textarea>
+
+        <h2>Internship Experience</h2>
+
+        <input id="internshipTitle"
+            placeholder="Job Title — Company">
+
+        <input id="internshipDate"
+            placeholder="Date">
+
+        <textarea id="internshipDescription"
+            placeholder="Internship description"></textarea>
+
+        <h2>Projects</h2>
+
+        <textarea id="projects"
+            placeholder="Enter projects"></textarea>
+
+        <h2>Certifications</h2>
+
+        <textarea id="certifications"
+            placeholder="Enter certifications"></textarea>
+
+        <h2>Hackathons</h2>
+
+        <textarea id="hackathons"
+            placeholder="Enter hackathons"></textarea>
+
+        <h2>Awards & Additional Information</h2>
+
+        <textarea id="awards"
+            placeholder="Enter awards, soft skills, languages, interests"></textarea>
+
+        <div class="buttons">
+
+            <button onclick="loadExample()">
+                Load Example
+            </button>
+
+            <button onclick="clearForm()">
+                Clear
+            </button>
+
+            <button class="download-btn" onclick="downloadPDF()">
+                Download PDF
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= RESUME ================= -->
+
+    <div class="resume-container">
+
+        <div id="resume">
+
+            <!-- HEADER -->
+
+            <div class="header">
+
+                <h1 id="r-name">YOUR NAME</h1>
+
+                <div id="r-location">
+                    Location | Phone | Email
+                </div>
+
+                <div class="links">
+
+                    <span id="r-linkedin">
+                        LinkedIn
+                    </span>
+
+                    <span id="r-github">
+                        GitHub
+                    </span>
+
+                    <span id="r-leetcode">
+                        LeetCode
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- SUMMARY -->
+
+            <section>
+
+                <h2>PROFESSIONAL SUMMARY</h2>
+
+                <p id="r-summary">
+                    Your professional summary will appear here.
+                </p>
+
+            </section>
+
+
+            <!-- SKILLS -->
+
+            <section>
+
+                <h2>TECHNICAL SKILLS</h2>
+
+                <p>
+                    <b>Programming Languages:</b>
+                    <span id="r-programming"></span>
+                </p>
+
+                <p>
+                    <b>Scripting Languages:</b>
+                    <span id="r-scripting"></span>
+                </p>
+
+                <p>
+                    <b>Databases:</b>
+                    <span id="r-databases"></span>
+                </p>
+
+                <p>
+                    <b>Frontend:</b>
+                    <span id="r-frontend"></span>
+                </p>
+
+                <p>
+                    <b>Backend:</b>
+                    <span id="r-backend"></span>
+                </p>
+
+                <p>
+                    <b>Tools & Platforms:</b>
+                    <span id="r-tools"></span>
+                </p>
+
+            </section>
+
+
+            <!-- EDUCATION -->
+
+            <section>
+
+                <h2>EDUCATION</h2>
+
+                <div id="r-education"
+                     class="multiline">
+                </div>
+
+            </section>
+
+
+            <!-- INTERNSHIP -->
+
+            <section>
+
+                <h2>INTERNSHIP EXPERIENCE</h2>
+
+                <div class="experience-title">
+
+                    <b id="r-internshipTitle">
+                        Internship Title — Company
+                    </b>
+
+                    <span id="r-internshipDate">
+                        Date
+                    </span>
+
+                </div>
+
+                <div id="r-internshipDescription"
+                     class="multiline">
+                </div>
+
+            </section>
+
+
+            <!-- PROJECTS -->
+
+            <section>
+
+                <h2>PROJECT WORK</h2>
+
+                <div id="r-projects"
+                     class="multiline">
+                </div>
+
+            </section>
+
+
+            <!-- CERTIFICATIONS -->
+
+            <section>
+
+                <h2>CERTIFICATIONS</h2>
+
+                <div id="r-certifications"
+                     class="multiline">
+                </div>
+
+            </section>
+
+
+            <!-- HACKATHONS -->
+
+            <section>
+
+                <h2>HACKATHONS</h2>
+
+                <div id="r-hackathons"
+                     class="multiline">
+                </div>
+
+            </section>
+
+
+            <!-- AWARDS -->
+
+            <section>
+
+                <h2>AWARDS & ADDITIONAL INFORMATION</h2>
+
+                <div id="r-awards"
+                     class="multiline">
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>

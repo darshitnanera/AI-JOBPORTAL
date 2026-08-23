@@ -5,14 +5,17 @@ import Candidate from "../../components/Candidate/Candidate";
 import Career from "../../components/Career/Career";
 import InterviewQuestion from "../../components/InterviewQuestion/InterviewQuestion";
 import Footer from "../../components/Footer/Footer";
+
 const Home = () => {
   return (
-    <div>
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 dark:bg-slate-950">
       <Navbar />
-      <Banner />
-      <Candidate />
-      <Career />
-      <InterviewQuestion />
+      <main>
+        <Banner />
+        <Candidate />
+        <Career />
+        <InterviewQuestion />
+      </main>
       <Footer />
     </div>
   );

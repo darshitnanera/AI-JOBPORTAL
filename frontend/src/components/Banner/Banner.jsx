@@ -1,111 +1,45 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Briefcase,
   ArrowRight,
   PlayCircle,
   ChevronRight,
-  Backpack,
+  Sparkles,
   X as CloseIcon,
-  CircleChevronRight,
 } from "lucide-react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-// Video hosted externally; no local import to avoid large binary in repo
-import { bannerStyles as s } from "../../assets/dummyStyles";
 
-/* --- LottieLogo component (unchanged except style references) --- */
-const LottieLogo = ({ src, size = 56, initials = "TV" }) => {
-  const containerRef = useRef(null);
-  const [preview, setPreview] = useState(null);
-  const [playerReady, setPlayerReady] = useState(false);
-  const [attemptedPreview, setAttemptedPreview] = useState(false);
+/* Demo video is hosted externally; no local binary in the repo. */
+const DEMO_VIDEO_URL =
+  "https://drive.google.com/uc?export=download&id=1x00FRMGpVvLu3RiZW2PzeDIbhZ3A7AnL";
 
-  useEffect(() => {
-    if (!src || !src.startsWith("http") || attemptedPreview) return;
-    let cancelled = false;
-    const tryPreview = async () => {
-      try {
-        const pngUrl = src.replace(/\.lottie(\?.*)?$/i, ".png");
-        const resp = await fetch(pngUrl, { method: "HEAD" });
-        if (!cancelled && resp.ok) setPreview(pngUrl);
-      } catch (e) {
-        // ignore
-      } finally {
-        setAttemptedPreview(true);
-      }
-    };
-    tryPreview();
-    return () => {
-      cancelled = true;
-    };
-  }, [src, attemptedPreview]);
+const JOBS = [
+  {
+    title: "Senior UX Designer",
+    company: "TechVision Inc",
+    salary: "Rs120K",
+    logo: "TV",
+  },
+  {
+    title: "Frontend Developer",
+    company: "WebFlow",
+    salary: "Rs95K",
+    logo: "WF",
+  },
+  {
+    title: "Data Scientist",
+    company: "DataSphere",
+    salary: "Rs140K",
+    logo: "DS",
+  },
+];
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    let observer;
-    const checkReady = () => {
-      if (el.children.length > 0) {
-        setPlayerReady(true);
-        return true;
-      }
-      return false;
-    };
-    if (!checkReady()) {
-      observer = new MutationObserver(() => {
-        if (checkReady()) observer.disconnect();
-      });
-      observer.observe(el, { childList: true, subtree: true });
-      const t = setTimeout(() => {
-        if (!playerReady) setPlayerReady(true);
-      }, 2500);
-      return () => {
-        clearTimeout(t);
-        if (observer) observer.disconnect();
-      };
-    }
-    return () => {
-      if (observer) observer.disconnect();
-    };
-  }, [containerRef, playerReady]);
+const STATS = [
+  { value: "10,000+", label: "Jobs available now" },
+  { value: "50,000+", label: "Professionals hired" },
+  { value: "Daily", label: "Fresh listings" },
+];
 
-  const isUrl = typeof src === "string" && src.startsWith("http");
-
-  return (
-    <div style={s.logoWrapper(size)} className="logo-wrapper">
-      {preview && (
-        <img
-          src={preview}
-          alt="preview"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ ...s.logoPreviewImg, opacity: playerReady ? 0 : 1 }}
-        />
-      )}
-
-      <div
-        aria-hidden
-        style={{ ...s.logoBlurOverlay, opacity: playerReady ? 0 : 1 }}
-      />
-
-      <div ref={containerRef} style={s.logoContainer(playerReady)}>
-        {isUrl ? (
-          <DotLottieReact
-            src={src}
-            autoplay
-            loop
-            style={{ width: "90%", height: "90%", pointerEvents: "none" }}
-          />
-        ) : (
-          <span style={s.logoFallbackText(size)}>{initials}</span>
-        )}
-      </div>
-
-      {!isUrl && <div style={s.logoFallbackOverlay(size)}>{initials}</div>}
-    </div>
-  );
-};
-
-/* ---------------- Banner component ---------------- */
 const Banner = () => {
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
@@ -114,34 +48,18 @@ const Banner = () => {
   const [showVideo, setShowVideo] = useState(false);
   const videoRef = useRef(null);
   const closeBtnRef = useRef(null);
-
-  const [windowWidth, setWindowWidth] = useState(
-    typeof window !== "undefined" ? window.innerWidth : 1366,
-  );
-  const isXL = windowWidth >= 1280;
-  const lottieSize = windowWidth < 640 ? 48 : windowWidth < 1024 ? 64 : 72;
-
-  // Direct-download link from Google Drive (provided by user)
-  const DEMO_VIDEO_URL = "https://drive.google.com/uc?export=download&id=1x00FRMGpVvLu3RiZW2PzeDIbhZ3A7AnL";
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let t = null;
-    const onResize = () => {
-      clearTimeout(t);
-      t = setTimeout(() => setWindowWidth(window.innerWidth), 80);
-    };
-    window.addEventListener("resize", onResize);
-    return () => {
-      window.removeEventListener("resize", onResize);
-      clearTimeout(t);
-    };
-  }, []);
-
+  /* ---- decorative particle field (purely cosmetic, aria-hidden) ---- */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     const resizeCanvas = () => {
       const dpr = window.devicePixelRatio || 1;
@@ -151,119 +69,92 @@ const Banner = () => {
       ctx.scale(dpr, dpr);
 
       const particleCount =
-        window.innerWidth < 640 ? 28 : window.innerWidth < 1024 ? 50 : 80;
+        window.innerWidth < 640 ? 24 : window.innerWidth < 1024 ? 44 : 70;
 
-      if (
-        !particlesRef.current ||
-        particlesRef.current.length !== particleCount
-      ) {
-        class Particle {
-          constructor() {
-            this.reset();
-          }
-          reset() {
-            this.x = Math.random() * canvas.offsetWidth;
-            this.y = Math.random() * canvas.offsetHeight;
-            this.size = Math.random() * 3 + 1;
-            this.speedX = Math.random() * 0.5 - 0.25;
-            this.speedY = Math.random() * 0.5 - 0.25;
-            this.color = `rgba(99, 102, 241, ${Math.random() * 0.3 + 0.08})`;
-            this.waveOffset = Math.random() * Math.PI * 2;
-          }
-          update() {
-            const t = Date.now() * 0.001;
-            this.x += this.speedX + Math.sin(t + this.waveOffset) * 0.3;
-            this.y += this.speedY + Math.cos(t + this.waveOffset) * 0.3;
-            const w = canvas.offsetWidth;
-            const h = canvas.offsetHeight;
-            if (this.x > w) this.x = 0;
-            if (this.x < 0) this.x = w;
-            if (this.y > h) this.y = 0;
-            if (this.y < 0) this.y = h;
-          }
-          draw() {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fillStyle = this.color;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = this.color;
-            ctx.fill();
-            ctx.restore();
-          }
-        }
-        particlesRef.current = Array.from(
-          { length: particleCount },
-          () => new Particle(),
-        );
+      if (particlesRef.current.length !== particleCount) {
+        particlesRef.current = Array.from({ length: particleCount }, () => ({
+          x: Math.random() * canvas.offsetWidth,
+          y: Math.random() * canvas.offsetHeight,
+          size: Math.random() * 2.5 + 1,
+          speedX: Math.random() * 0.5 - 0.25,
+          speedY: Math.random() * 0.5 - 0.25,
+          alpha: Math.random() * 0.25 + 0.08,
+          wave: Math.random() * Math.PI * 2,
+        }));
       }
     };
 
-    const animate = () => {
-      if (!canvas) return;
-      ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+    const draw = () => {
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      ctx.clearRect(0, 0, w, h);
 
-      const gradient = ctx.createLinearGradient(
-        0,
-        0,
-        canvas.offsetWidth,
-        canvas.offsetHeight,
-      );
-      gradient.addColorStop(0, "rgba(224, 231, 255, 0.08)");
-      gradient.addColorStop(1, "rgba(199, 210, 254, 0.04)");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+      const parts = particlesRef.current;
+      const t = Date.now() * 0.001;
 
-      const parts = particlesRef.current || [];
-      for (let i = 0; i < parts.length; i++) {
-        parts[i].update();
-        parts[i].draw();
+      for (const p of parts) {
+        p.x += p.speedX + Math.sin(t + p.wave) * 0.3;
+        p.y += p.speedY + Math.cos(t + p.wave) * 0.3;
+        if (p.x > w) p.x = 0;
+        if (p.x < 0) p.x = w;
+        if (p.y > h) p.y = 0;
+        if (p.y < 0) p.y = h;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(99, 102, 241, ${p.alpha})`;
+        ctx.fill();
       }
 
       for (let i = 0; i < parts.length; i++) {
         for (let j = i + 1; j < parts.length; j++) {
           const dx = parts[i].x - parts[j].x;
           const dy = parts[i].y - parts[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const dist = Math.hypot(dx, dy);
           if (dist < 90) {
-            ctx.save();
             ctx.beginPath();
             ctx.strokeStyle = `rgba(99, 102, 241, ${0.08 * (1 - dist / 90)})`;
             ctx.lineWidth = 0.45;
             ctx.moveTo(parts[i].x, parts[i].y);
             ctx.lineTo(parts[j].x, parts[j].y);
             ctx.stroke();
-            ctx.restore();
           }
         }
       }
 
-      rafRef.current = requestAnimationFrame(animate);
+      rafRef.current = requestAnimationFrame(draw);
     };
 
     resizeCanvas();
-    animate();
+    if (prefersReduced) {
+      draw();
+      cancelAnimationFrame(rafRef.current);
+    } else {
+      draw();
+    }
 
-    const onResize = () => resizeCanvas();
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", resizeCanvas);
     return () => {
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", resizeCanvas);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
+  /* ---- modal body-scroll lock + focus + escape ---- */
   useEffect(() => {
     if (showVideo) {
       document.body.style.overflow = "hidden";
-      setTimeout(() => closeBtnRef.current?.focus(), 80);
-    } else {
-      document.body.style.overflow = "";
-      const v = videoRef.current;
-      if (v) {
-        try {
-          v.pause();
-          v.currentTime = 0;
-        } catch (e) {}
+      const t = setTimeout(() => closeBtnRef.current?.focus(), 80);
+      return () => clearTimeout(t);
+    }
+    document.body.style.overflow = "";
+    const v = videoRef.current;
+    if (v) {
+      try {
+        v.pause();
+        v.currentTime = 0;
+      } catch {
+        /* noop */
       }
     }
   }, [showVideo]);
@@ -276,156 +167,155 @@ const Banner = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [showVideo]);
 
-  const jobs = [
-    {
-      title: "Senior UX Designer",
-      company: "TechVision Inc",
-      salary: "Rs120K",
-      logo: "TV",
-    },
-    {
-      title: "Frontend Developer",
-      company: "WebFlow",
-      salary: "Rs95K",
-      logo: "WF",
-    },
-    {
-      title: "Data Scientist",
-      company: "DataSphere",
-      salary: "Rs140K",
-      logo: "DS",
-    },
-  ];
-
   return (
-    <div className={s.bannerContainer}>
-      <canvas ref={canvasRef} className={s.canvas} aria-hidden />
+    <section className="relative isolate overflow-hidden bg-slate-50 dark:bg-slate-950">
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full"
+      />
+      {/* soft brand wash behind the canvas */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-br from-brand-50 via-slate-50 to-accent-400/10 dark:from-slate-900 dark:via-slate-950 dark:to-brand-950/40"
+      />
 
-      <div className={s.contentWrapper}>
-        <div className={s.maxWidthContainer}>
-          <div className={s.grid}>
-            {/* Left Column */}
-            <div className={s.leftColumn}>
-              <div className={s.badgeContainer}>
-                <Backpack className={s.badgeIcon} />
-                <span className={s.badgeText}>10,000+ Jobs Available Now</span>
-              </div>
+      <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          {/* ---------------- Left: copy + CTAs ---------------- */}
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 ring-1 ring-brand-200 sm:text-sm dark:bg-brand-500/10 dark:text-brand-300 dark:ring-brand-500/25">
+              <Sparkles size={16} aria-hidden="true" />
+              10,000+ Jobs Available Now
+            </span>
 
-              <h1 className={s.heading}>
-                <span className={s.headingFindYour}>Find Your</span>
-                <span className={s.headingDreamJobWrapper}>
-                  <span className={s.headingDreamJob}>Dream Job</span>
-                  <span className={s.headingUnderline} />
-                </span>
-              </h1>
+            <h1 className="mt-6 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl dark:text-slate-50">
+              Find Your{" "}
+              <span className="text-gradient-brand">Dream Job</span>
+            </h1>
 
-              <p className={s.description}>
-                Join{" "}
-                <span className="font-semibold text-indigo-600">50,000+</span>{" "}
-                professionals who found their perfect career match through our
-                advanced AI-powered job portal.
-              </p>
+            <p className="mt-5 max-w-xl text-base text-slate-600 sm:text-lg dark:text-slate-400">
+              Join{" "}
+              <span className="font-semibold text-brand-600 dark:text-brand-400">
+                50,000+
+              </span>{" "}
+              professionals who found their perfect career match through our
+              advanced AI-powered job portal.
+            </p>
 
-              <div className={s.buttonsContainer}>
-                <button
-                  onClick={() => navigate("/jobs")}
-                  className={s.findJobsButton}
-                >
-                  <div className={s.findJobsShine} />
-                  <div className={s.findJobsContent}>
-                    <span className={s.findJobsText}>Find Jobs Now</span>
-                    <ArrowRight className={s.findJobsIcon} />
-                  </div>
-                  <div className={s.findJobsGlow} />
-                </button>
+            <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
+              <Link
+                to="/jobs"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow-md active:scale-[0.98] sm:text-base"
+              >
+                <span>Find Jobs Now</span>
+                <ArrowRight
+                  size={18}
+                  aria-hidden="true"
+                  className="transition-transform group-hover:translate-x-1"
+                />
+              </Link>
 
-                <button
-                  onClick={() => setShowVideo(true)}
-                  className={s.watchDemoButton}
-                >
-                  <PlayCircle className={s.watchDemoIcon} />
-                  <span className={s.watchDemoText}>Watch Demo</span>
-                  <CircleChevronRight className={s.watchDemoArrow} />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowVideo(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98] sm:text-base dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                <PlayCircle
+                  size={18}
+                  aria-hidden="true"
+                  className="text-brand-600 dark:text-brand-400"
+                />
+                <span>Watch Demo</span>
+              </button>
             </div>
 
-            {/* Right Column */}
-            <div className={s.rightColumn}>
-              <div
-                className={`${s.cardContainer} ${
-                  isXL ? "hover:rotate-y-12 rotate-0" : "rotate-0"
-                }`}
-              >
-                <div className={s.card}>
-                  <div className={s.cardHeader}>
-                    <div className="flex items-center gap-3">
-                      <div className={s.briefcaseIconContainer}>
-                        <Briefcase className={s.briefcaseIcon} />
+            {/* ---------------- Stat strip ---------------- */}
+            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-slate-200 pt-6 dark:border-slate-800">
+              {STATS.map((stat) => (
+                <div key={stat.label}>
+                  <dt className="sr-only">{stat.label}</dt>
+                  <dd className="text-xl font-bold text-slate-900 sm:text-2xl dark:text-slate-50">
+                    {stat.value}
+                  </dd>
+                  <p className="mt-1 text-xs text-slate-600 sm:text-sm dark:text-slate-400">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          {/* ---------------- Right: Featured Jobs card ---------------- */}
+          <div className="w-full">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-xl sm:p-6 dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white">
+                  <Briefcase size={20} aria-hidden="true" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">
+                    Featured Jobs
+                  </h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Updated daily
+                  </p>
+                </div>
+              </div>
+
+              <ul className="mt-5 space-y-3">
+                {JOBS.map((job) => (
+                  <li
+                    key={`${job.company}-${job.title}`}
+                    className="rounded-xl border border-slate-200 bg-white p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md sm:p-4 dark:border-slate-800 dark:bg-slate-950"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-base font-bold text-white">
+                          {job.logo?.charAt(0) || "?"}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="truncate text-sm font-semibold text-slate-900 sm:text-base dark:text-slate-50">
+                            {job.title}
+                          </h3>
+                          <p className="truncate text-xs text-slate-600 sm:text-sm dark:text-slate-400">
+                            {job.company}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className={s.featuredTitle}>Featured Jobs</h3>
-                        <p className={s.featuredSubtitle}>Updated daily</p>
+
+                      <div className="shrink-0 text-right">
+                        <div className="text-sm font-bold text-brand-600 sm:text-base dark:text-brand-400">
+                          {job.salary}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                          per year
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </li>
+                ))}
+              </ul>
 
-                  <div className={s.jobsList}>
-                    {jobs.map((job, index) => (
-                      <div key={index} className={s.jobItem}>
-                        <div className={s.jobItemFlex}>
-                          <div className={s.jobItemLeft}>
-                            <div className={s.jobLogoContainer}>
-                              {typeof job.logo === "string" &&
-                              job.logo.startsWith("http") ? (
-                                <div className="w-full h-full p-1 flex items-center justify-center">
-                                  <LottieLogo
-                                    src={job.logo}
-                                    size={lottieSize}
-                                  />
-                                </div>
-                              ) : (
-                                <div className={s.jobFallbackLogo}>
-                                  <span className={s.jobFallbackText}>
-                                    {job.logo?.charAt(0) || "?"}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div>
-                              <h4 className={s.jobTitle}>{job.title}</h4>
-                              <p className={s.jobCompany}>{job.company}</p>
-                            </div>
-                          </div>
-
-                          <div className={s.salaryContainer}>
-                            <div className={s.salaryAmount}>{job.salary}</div>
-                            <div className={s.salaryPeriod}>per year</div>
-                          </div>
-                        </div>
-                        <div className={s.jobHoverOverlay}></div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className={s.viewAllContainer}>
-                    <button
-                      onClick={() => navigate("/jobs")}
-                      className={s.viewAllButton}
-                    >
-                      <span className={s.viewAllText}>View All Jobs</span>
-                      <ChevronRight className={s.viewAllIcon} />
-                    </button>
-                  </div>
-                </div>
+              <div className="mt-5 border-t border-slate-200 pt-4 dark:border-slate-800">
+                <Link
+                  to="/jobs"
+                  className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                >
+                  View All Jobs
+                  <ChevronRight
+                    size={16}
+                    aria-hidden="true"
+                    className="transition-transform group-hover:translate-x-0.5"
+                  />
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Video Modal */}
+      {/* ---------------- Video modal ---------------- */}
       {showVideo && (
         <div
           role="dialog"
@@ -434,55 +324,34 @@ const Banner = () => {
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
         >
           <div
-            className={s.modalBackdrop}
+            className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
             onClick={() => setShowVideo(false)}
           />
-          <div className={s.modalPanel}>
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
             <button
+              type="button"
               ref={closeBtnRef}
               onClick={() => setShowVideo(false)}
               aria-label="Close video"
-              className={s.modalCloseButton}
+              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-900/80 text-slate-200 transition hover:bg-slate-800 hover:text-white"
             >
-              <CloseIcon className={s.modalCloseIcon} />
+              <CloseIcon size={18} aria-hidden="true" />
             </button>
-            <div className={s.modalVideoWrapper}>
-              <div
-                className={s.modalVideoContainerClass}
-                style={{ paddingTop: "56.25%" }}
-              >
-                <video
-                  ref={videoRef}
-                  src={DEMO_VIDEO_URL}
-                  controls
-                  autoPlay
-                  muted
-                  playsInline
-                  style={s.modalVideoContainer}
-                />
-              </div>
+            <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+              <video
+                ref={videoRef}
+                src={DEMO_VIDEO_URL}
+                controls
+                autoPlay
+                muted
+                playsInline
+                className="absolute inset-0 h-full w-full"
+              />
             </div>
           </div>
         </div>
       )}
-
-      {/* SVG Wave */}
-      <div className={s.waveContainer}>
-        <svg
-          className={s.waveSvg}
-          viewBox="0 0 1200 120"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
-            className={s.wavePathFill}
-          />
-        </svg>
-      </div>
-
-      {/* Global Styles */}
-      <style>{s.globalStyles}</style>
-    </div>
+    </section>
   );
 };
 

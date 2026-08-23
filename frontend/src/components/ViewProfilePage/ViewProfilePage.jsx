@@ -1,397 +1,395 @@
-import React, { useState, useEffect } from "react";
-import {
-  User,
-  Mail,
-  Phone,
-  Upload,
-  Trash2,
-  Save,
-  X,
-  Edit3,
-  FileText,
-  Loader2,
-} from "lucide-react";
-import { viewProfilePageStyles as s } from "../../assets/dummyStyles";
-import { apiUrl } from "../../utils/api";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useSearchParams } from "react-router-dom";
+import axios from "axios";
+import { AlertCircle, RefreshCw, CheckCircle2, X, Eye } from "lucide-react";
 
-// Simple toast component
-const Toast = ({ message, type = "success", onClose }) => {
+import { apiUrl } from "../../utils/api";
+import DeveloperActivity from "../Integrations/DeveloperActivity";
+import IntegrationButtons from "../Integrations/IntegrationButtons";
+import useIntegrations, {
+  EMPTY_INTEGRATIONS,
+} from "../Integrations/useIntegrations";
+import { authHeaders } from "../Integrations/integrationHelpers";
+
+import ProfileHeaderCard, {
+  ProfileHeaderSkeleton,
+} from "./ProfileHeaderCard";
+import EditProfileModal from "./EditProfileModal";
+import {
+  PersonalDetailsSection,
+  SkillsSection,
+  TargetRolesSection,
+  EducationSection,
+  ProjectsSection,
+  CertificationsSection,
+  AchievementsSection,
+  ResumeSection,
+  ContactSection,
+  SectionSkeleton,
+} from "./ProfileSections";
+import { normaliseProfile } from "./profileModel";
+
+/* ------------------------------------------------------------------ *
+ * Candidate profile surface.                                          *
+ *                                                                     *
+ * Two modes:                                                          *
+ *  - OWNER      /viewprofile          → GET /api/user/profile          *
+ *                                       + GET /api/integrations/profile*
+ *  - RECRUITER  /viewprofile?candidateId=<id>                          *
+ *                → GET /api/integrations/candidate/:candidateId        *
+ *                                                                     *
+ * In recruiter mode the developer-activity panels sit directly under   *
+ * the header, and every owner-only affordance (edit / connect /        *
+ * disconnect) is hidden.                                               *
+ * ------------------------------------------------------------------ */
+
+const readStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("jobportal_user")) || null;
+  } catch {
+    return null;
+  }
+};
+
+const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
+    const timer = setTimeout(onClose, 3500);
     return () => clearTimeout(timer);
   }, [onClose]);
 
+  const isError = type === "error";
+
   return (
-    <div className={s.toast.container}>
+    <div className="fixed bottom-6 right-6 z-50 max-w-sm">
       <div
-        className={`${s.toast.card} ${type === "success" ? s.toast.cardSuccess : s.toast.cardError}`}
+        role="status"
+        className={`flex items-start gap-3 rounded-xl border p-4 shadow-lg ${
+          isError
+            ? "border-danger-500/30 bg-danger-50 dark:border-danger-500/25 dark:bg-danger-500/10"
+            : "border-success-500/30 bg-success-50 dark:border-success-500/25 dark:bg-success-500/10"
+        }`}
       >
-        <div
-          className={`${s.toast.indicator} ${type === "success" ? s.toast.indicatorSuccess : s.toast.indicatorError}`}
-        />
-        <span className={s.toast.message}>{message}</span>
-        <button onClick={onClose} className={s.toast.closeButton}>
-          <X className={s.toast.closeIcon} />
+        {isError ? (
+          <AlertCircle
+            size={18}
+            className="mt-0.5 shrink-0 text-danger-600 dark:text-danger-500"
+          />
+        ) : (
+          <CheckCircle2
+            size={18}
+            className="mt-0.5 shrink-0 text-success-600 dark:text-success-500"
+          />
+        )}
+        <p className="min-w-0 flex-1 text-sm font-medium text-slate-800 dark:text-slate-100">
+          {message}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Dismiss"
+          className="shrink-0 rounded p-0.5 text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+        >
+          <X size={16} />
         </button>
       </div>
     </div>
   );
 };
 
+const PageError = ({ message, onRetry }) => (
+  <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-danger-50 text-danger-600 dark:bg-danger-500/10 dark:text-danger-500">
+      <AlertCircle size={22} />
+    </span>
+    <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+      We couldn&apos;t load this profile
+    </h2>
+    <p className="mx-auto mt-1 max-w-md text-sm text-slate-600 dark:text-slate-400">
+      {message || "Something went wrong while contacting the server."}
+    </p>
+    {onRetry ? (
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow-md active:scale-[0.98]"
+      >
+        <RefreshCw size={16} />
+        Try again
+      </button>
+    ) : null}
+  </div>
+);
+
 const ViewProfilePage = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    resume: null,
-  });
-  const [originalProfile, setOriginalProfile] = useState(null);
+  const [searchParams] = useSearchParams();
+  const candidateId = searchParams.get("candidateId") || searchParams.get("id");
+
+  const viewer = useMemo(readStoredUser, []);
+  const viewerId = viewer?._id || viewer?.id || null;
+  const isRecruiterView = Boolean(candidateId) && candidateId !== viewerId;
+
+  const [rawUser, setRawUser] = useState(null);
+  const [recruiterIntegrations, setRecruiterIntegrations] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
+
+  const integrationsRef = useRef(null);
+
+  /* Owner mode fetches its own integrations; recruiter mode gets them
+     bundled with the candidate payload. */
+  const ownerIntegrations = useIntegrations({ enabled: !isRecruiterView });
+
+  const loadProfile = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      if (isRecruiterView) {
+        const response = await axios.get(
+          `/api/integrations/candidate/${candidateId}`,
+          { headers: authHeaders() },
+        );
+        setRawUser(response.data?.candidate?.user || null);
+        setRecruiterIntegrations(
+          response.data?.candidate?.integrations || EMPTY_INTEGRATIONS,
+        );
+      } else {
+        const response = await fetch(apiUrl("/api/user/profile"), {
+          headers: authHeaders(),
+        });
+        if (!response.ok) {
+          throw new Error(
+            response.status === 401
+              ? "Please sign in again to view your profile."
+              : `Request failed with status ${response.status}`,
+          );
+        }
+        const data = await response.json();
+        setRawUser(data?.user || null);
+      }
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Unable to load this profile.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [candidateId, isRecruiterView]);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("jobportal_user"));
+    loadProfile();
+  }, [loadProfile]);
 
-        const res = await fetch(apiUrl("/api/user/profile"), {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+  const integrations = isRecruiterView
+    ? recruiterIntegrations
+    : ownerIntegrations.integrations;
 
-        const data = await res.json();
-        setProfile({
-          name: data.user.name || "",
-          email: data.user.email || "",
-          phone: data.user.phone || "",
-          resume: data.user.resume || null,
-        });
+  const profile = useMemo(
+    () => normaliseProfile(rawUser, integrations),
+    [rawUser, integrations],
+  );
 
-        setOriginalProfile(data.user);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchProfile();
-  }, []);
+  /* ------------------------- Actions ------------------------------ */
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handlePhoneChange = (e) => {
-    const raw = e.target.value;
-    const digits = raw.replace(/\D/g, "").slice(0, 10);
-    setProfile((prev) => ({ ...prev, phone: digits }));
-  };
-
-  const handleResumeUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setProfile((prev) => ({
-      ...prev,
-      resume: file,
-    }));
-  };
-
-  const handleDeleteResume = () => {
-    setProfile((prev) => ({ ...prev, resume: null }));
-  };
-
-  const validate = () => {
-    if (!profile.name.trim()) return "Name is required";
-    if (!profile.email.trim()) return "Email is required";
-    if (!/\S+@\S+\.\S+/.test(profile.email)) return "Email is invalid";
-    if (!profile.phone) return "Phone is required";
-    if (!/^\d{10}$/.test(profile.phone))
-      return "Phone must be exactly 10 digits";
-
-    return null;
-  };
-
-  const handleSave = async () => {
-    const error = validate();
-    if (error) {
-      setToast({ message: error, type: "error" });
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      const user = JSON.parse(localStorage.getItem("jobportal_user"));
-      const formData = new FormData();
-      formData.append("name", profile.name);
-      formData.append("email", profile.email);
-      formData.append("phone", profile.phone);
-
-      if (profile.resume instanceof File) {
-        formData.append("resume", profile.resume);
-      }
-      const res = await fetch(apiUrl("/api/user/profile"), {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: formData,
-      });
-      const data = await res.json();
-      setProfile({
-        name: data.user.name,
-        email: data.user.email,
-        phone: data.user.phone,
-        resume: data.user.resume,
-      });
-      setOriginalProfile(data.user);
-      setIsEditing(false);
-      setToast({ message: "profile updated!", type: "success" });
-    } catch (err) {
-      setToast({ message: "Update failed", type: "error" });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setProfile(originalProfile);
-    setIsEditing(false);
-  };
-
-  const getFileName = (resume) => {
-    if (!resume) return "";
-    if (resume instanceof File) return resume.name;
-    if (typeof resume === "string") {
-      return (
-        resume.split("/").pop().split("-").slice(1).join("-") ||
-        resume.split("/").pop()
-      );
-    }
-    return "Resume";
-  };
-
-  const handleViewResume = () => {
+  const handleDownloadResume = useCallback(() => {
     if (!profile.resume) return;
+    const targetId = profile.id;
+    const href =
+      typeof profile.resume === "string" && /^https?:\/\//i.test(profile.resume)
+        ? profile.resume
+        : targetId
+          ? apiUrl(`/api/user/resume/${targetId}`)
+          : null;
+    if (!href) return;
+    window.open(href, "_blank", "noopener,noreferrer");
+  }, [profile.resume, profile.id]);
 
-    if (profile.resume instanceof File) {
-      const url = URL.createObjectURL(profile.resume);
-      window.open(url, "_blank");
-    } else if (typeof profile.resume === "string") {
-      const fullUrl = apiUrl(`/api/user/resume/${originalProfile._id}`);
+  const handleSave = useCallback(
+    async (form) => {
+      setSaving(true);
+      try {
+        /* Unchanged request shape: multipart PUT /api/user/profile */
+        const formData = new FormData();
+        formData.append("name", form.name);
+        formData.append("email", form.email);
+        formData.append("phone", form.phone);
+        if (form.resume instanceof File) {
+          formData.append("resume", form.resume);
+        }
 
-      const link = document.createElement("a");
-      link.href = fullUrl;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
+        const response = await fetch(apiUrl("/api/user/profile"), {
+          method: "PUT",
+          headers: authHeaders(),
+          body: formData,
+        });
+        if (!response.ok) throw new Error("Update failed");
 
-  return (
-    <div className={s.container}>
-      <div className={s.innerContainer}>
-        {/* Header */}
-        <div className={s.header}>
-          <h1 className={s.headerTitle}>My Profile</h1>
+        const data = await response.json();
+        setRawUser((prev) => ({ ...(prev || {}), ...(data?.user || {}) }));
+        setEditing(false);
+        setToast({ message: "Profile updated.", type: "success" });
+      } catch (err) {
+        setToast({
+          message: err?.message || "Update failed",
+          type: "error",
+        });
+      } finally {
+        setSaving(false);
+      }
+    },
+    [],
+  );
 
-          {!isEditing ? (
-            <button onClick={() => setIsEditing(true)} className={s.editButton}>
-              <Edit3 className={s.editIcon} />
-              Edit Profile
-            </button>
-          ) : (
-            <div className={s.actionButtons}>
-              <button onClick={handleCancel} className={s.cancelButton}>
-                <X className={s.cancelIcon} />
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className={`${s.saveButton} ${isSaving ? s.saveButtonDisabled : ""}`}
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className={s.savingSpinner} />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className={s.saveIcon} />
-                    Save Changes
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
+  const openEdit = useCallback(() => setEditing(true), []);
 
-        {/* Profile Card */}
-        <div className={s.profileCard}>
-          {/* Avatar */}
-          <div className={s.avatarSection}>
-            <div className={s.avatar}>
-              {profile.name
-                ? profile.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2)
-                : "U"}
-            </div>
+  /* Connect CTAs are owner-only — recruiters get no connect affordances. */
+  const connectHandlers = isRecruiterView
+    ? {}
+    : {
+        onConnectGithub: () => integrationsRef.current?.connectGithub(),
+        onConnectLeetcode: () => integrationsRef.current?.openLeetcode(),
+        onConnectLinkedin: () => integrationsRef.current?.openLinkedin(),
+      };
 
-            <div className={s.avatarInfo}>
-              <h2 className={s.avatarName}>{profile.name || "Your Name"}</h2>
-              <p className={s.avatarEmail}>
-                <Mail className={s.avatarEmailIcon} />
-                {profile.email || "email@example.com"}
-              </p>
-            </div>
+  /* --------------------------- Render ----------------------------- */
+
+  if (loading) {
+    return (
+      <div className="min-w-0 space-y-6">
+        <ProfileHeaderSkeleton />
+        <div className="grid min-w-0 gap-6 lg:grid-cols-3">
+          <div className="min-w-0 space-y-6 lg:col-span-2">
+            <SectionSkeleton rows={5} />
+            <SectionSkeleton rows={3} />
           </div>
-
-          {/* Fields */}
-          <div className={s.formGrid}>
-            {/* Name */}
-            <div className={s.fieldGroup}>
-              <label className={s.fieldLabel}>
-                <User className={s.fieldIcon} />
-                Full Name <span className={s.requiredStar}>*</span>
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="name"
-                  value={profile.name}
-                  onChange={handleChange}
-                  className={s.input}
-                  placeholder="John Doe"
-                  required
-                />
-              ) : (
-                <p className={s.displayText}>{profile.name}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div className={s.fieldGroup}>
-              <label className={s.fieldLabel}>
-                <Mail className={s.fieldIcon} />
-                Email <span className={s.requiredStar}>*</span>
-              </label>
-              {isEditing ? (
-                <input
-                  type="email"
-                  name="email"
-                  value={profile.email}
-                  onChange={handleChange}
-                  className={s.input}
-                  placeholder="john@example.com"
-                  required
-                />
-              ) : (
-                <p className={s.displayText}>{profile.email}</p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div className={s.fieldGroup}>
-              <label className={s.fieldLabel}>
-                <Phone className={s.fieldIcon} />
-                Phone <span className={s.requiredStar}>*</span>
-              </label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  name="phone"
-                  value={profile.phone}
-                  onChange={handlePhoneChange}
-                  className={s.input}
-                  placeholder="1234567890 (10 digits)"
-                  maxLength={10}
-                  required
-                />
-              ) : (
-                <p className={s.displayText}>{profile.phone}</p>
-              )}
-            </div>
-
-            {/* Resume */}
-            <div className={s.resumeSection}>
-              <label className={s.fieldLabel}>
-                <FileText className={s.fieldIcon} />
-                Resume (PDF or Word)
-              </label>
-              {isEditing ? (
-                <div className={s.resumeUploadWrapper}>
-                  <div className={s.resumeUploadRow}>
-                    <label className={s.resumeUploadLabel}>
-                      <div className={s.resumeUploadBox}>
-                        <Upload className={s.resumeUploadIcon} />
-                        <span className={s.resumeFileName}>
-                          {profile.resume
-                            ? getFileName(profile.resume)
-                            : "Choose file..."}
-                        </span>
-                      </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        onChange={handleResumeUpload}
-                      />
-                    </label>
-                    {profile.resume && (
-                      <button
-                        onClick={handleDeleteResume}
-                        className={s.resumeDeleteButton}
-                        title="Delete resume"
-                      >
-                        <Trash2 className={s.resumeDeleteIcon} />
-                      </button>
-                    )}
-                  </div>
-                  {profile.resume && (
-                    <p className={s.resumeSuccessText}>
-                      File uploaded: {profile.resume.name || "Uploaded Resume"}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  {profile.resume ? (
-                    <button
-                      onClick={handleViewResume}
-                      className={s.resumeViewButton}
-                    >
-                      <FileText className={s.resumeViewIcon} />
-                      View Resume{" "}
-                      {profile.resume ? `(${getFileName(profile.resume)})` : ""}
-                    </button>
-                  ) : (
-                    <p className={s.noResumeText}>No resume uploaded</p>
-                  )}
-                </div>
-              )}
-            </div>
+          <div className="min-w-0 space-y-6">
+            <SectionSkeleton rows={2} />
+            <SectionSkeleton rows={2} />
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Toast */}
-      {toast && (
+  if (error || !rawUser) {
+    return (
+      <PageError
+        message={error || "This profile could not be found."}
+        onRetry={loadProfile}
+      />
+    );
+  }
+
+  const developerActivity = (
+    <DeveloperActivity
+      integrations={integrations}
+      loading={!isRecruiterView && ownerIntegrations.loading}
+      error={isRecruiterView ? "" : ownerIntegrations.error}
+      onRetry={isRecruiterView ? loadProfile : ownerIntegrations.refresh}
+      description={
+        isRecruiterView
+          ? "GitHub, LeetCode and LinkedIn signals for this candidate. Only values returned by the platforms are shown."
+          : "What recruiters see from your connected platforms. Only real, synced values are shown."
+      }
+      {...connectHandlers}
+    />
+  );
+
+  return (
+    <div className="min-w-0 space-y-6">
+      {isRecruiterView ? (
+        <p className="inline-flex items-center gap-2 rounded-full bg-accent-500/10 px-3 py-1.5 text-xs font-semibold text-accent-600 ring-1 ring-accent-500/25 dark:text-accent-400">
+          <Eye size={14} />
+          Recruiter view — read only
+        </p>
+      ) : null}
+
+      <ProfileHeaderCard
+        profile={profile}
+        isRecruiterView={isRecruiterView}
+        onEdit={openEdit}
+        onDownloadResume={handleDownloadResume}
+      />
+
+      {/* Recruiters see developer activity first — right under the header. */}
+      {isRecruiterView ? developerActivity : null}
+
+      <div className="grid min-w-0 gap-6 lg:grid-cols-3">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
+          <PersonalDetailsSection
+            profile={profile}
+            isRecruiterView={isRecruiterView}
+          />
+          <EducationSection profile={profile} />
+          <ProjectsSection profile={profile} />
+          <CertificationsSection profile={profile} />
+          <AchievementsSection profile={profile} />
+        </div>
+
+        <aside className="min-w-0 space-y-6">
+          <SkillsSection
+            profile={profile}
+            onEdit={isRecruiterView ? null : openEdit}
+          />
+          <TargetRolesSection
+            profile={profile}
+            onEdit={isRecruiterView ? null : openEdit}
+          />
+          <ResumeSection
+            profile={profile}
+            isRecruiterView={isRecruiterView}
+            onDownload={handleDownloadResume}
+            onEdit={isRecruiterView ? null : openEdit}
+          />
+          {!isRecruiterView ? <ContactSection profile={profile} /> : null}
+        </aside>
+      </div>
+
+      {/* Owner sees developer activity plus the connect UI below the fold. */}
+      {!isRecruiterView ? (
+        <>
+          {developerActivity}
+          <IntegrationButtons
+            ref={integrationsRef}
+            integrations={ownerIntegrations.integrations}
+            loading={ownerIntegrations.loading}
+            error={ownerIntegrations.error}
+            onRefresh={ownerIntegrations.refresh}
+          />
+        </>
+      ) : null}
+
+      {editing ? (
+        <EditProfileModal
+          initial={{
+            name: profile.name,
+            email: profile.email,
+            phone: profile.phone,
+            resume: profile.resume,
+          }}
+          saving={saving}
+          onCancel={() => setEditing(false)}
+          onSave={handleSave}
+        />
+      ) : null}
+
+      {toast ? (
         <Toast
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
         />
-      )}
-
-      {/* Animations */}
-      <style>{s.globalStyles}</style>
+      ) : null}
     </div>
   );
 };

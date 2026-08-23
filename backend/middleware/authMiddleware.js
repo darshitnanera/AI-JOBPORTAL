@@ -10,7 +10,13 @@ export const authMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = decoded;
+    // The token is signed with `{ id: user._id, ... }`, but jobMatch and
+    // message controllers read `req.user._id`. That was silently undefined,
+    // so every `findById` in them returned null and AI job matching and
+    // messaging failed for every request. Expose both spellings so either
+    // convention resolves to the same user.
+    const userId = decoded.id || decoded._id || decoded.userId;
+    req.user = { ...decoded, id: userId, _id: userId };
 
     next();
   } catch (error) {
@@ -32,4 +38,8 @@ export const authorize = (...roles) => {
     next();
   };
 };
+
+// Alias for backward compatibility
+export const verifyToken = authMiddleware;
+export const authenticateToken = authMiddleware;
 

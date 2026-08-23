@@ -40,3 +40,20 @@ export const generateResumePdf = async ({ interviewReportId }) => {
 
   return response.data;
 };
+
+/**
+ * Personalised job recommendations produced by the matching engine.
+ * Returns [] for users the endpoint does not apply to (e.g. recruiters).
+ */
+export const getJobRecommendations = async (limit = 6) => {
+  const response = await API.get("/api/job-match/recommendations", {
+    params: { limit },
+  });
+  return response.data?.recommendations || [];
+};
+
+/** The candidate's stored parsed resume, or null when none exists. */
+export const getParsedResume = async () => {
+  const response = await API.get("/api/resume/parsed");
+  return response.data?.parsedResume || null;
+};

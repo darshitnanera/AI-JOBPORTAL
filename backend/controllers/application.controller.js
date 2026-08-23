@@ -33,6 +33,7 @@ export const applyJob = async (req, res) => {
         const newapplication = new Application({
             job: jobId,
             user: userId,
+            status: "Applied",
         });
         await newapplication.save();
         return res.status(201).json({ success: true, message: "Application submitted successfully" });
