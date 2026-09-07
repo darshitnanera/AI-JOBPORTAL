@@ -436,25 +436,28 @@ export function resolveMock(pathname, method = "GET") {
     return ok({ success: true, analytics: { userGrowth: [], jobTrends: [], applicationTrends: [] } });
 
   // ── integrations ────────────────────────────────────────────────────────
-  if (/^\/api\/integrations\//.test(p))
+  if (/^\/api\/integrations\//.test(p)) {
+    const mockIntegrations = {
+      github: {
+        connected: true,
+        username: "riyap",
+        profileUrl: "https://github.com/riyap",
+      },
+      linkedin: {
+        connected: true,
+        profileUrl: "https://linkedin.com/in/riyap",
+        headline: "Frontend Developer",
+      },
+      // Left disconnected on purpose so the "Not added yet / Add" state is
+      // exercised in development.
+      leetcode: { connected: false },
+    };
     return ok({
       success: true,
-      integrations: {
-        github: {
-          connected: true,
-          username: "riyap",
-          profileUrl: "https://github.com/riyap",
-        },
-        linkedin: {
-          connected: true,
-          profileUrl: "https://linkedin.com/in/riyap",
-          headline: "Frontend Developer",
-        },
-        // Left disconnected on purpose so the "Not added yet / Add" state is
-        // exercised in development.
-        leetcode: { connected: false },
-      },
+      integration: mockIntegrations,
+      integrations: mockIntegrations,
     });
+  }
 
   // ── exams ───────────────────────────────────────────────────────────────
   // The backend has no exam portal yet. These fixtures let the dashboard

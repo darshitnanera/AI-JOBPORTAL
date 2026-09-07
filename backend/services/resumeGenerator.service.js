@@ -353,17 +353,38 @@ function generateResumeHTML(parsedResume, fullName) {
  */
 async function launchBrowser() {
   const isProduction = process.env.NODE_ENV === "production";
+  const commonArgs = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"];
 
-  return puppeteer.launch(
-    isProduction
-      ? {
-          args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+  // Candidate executable paths for Windows/Linux environments
+  const candidatePaths = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+  ].filter(Boolean);
+
+  // Try standard launch first
+  try {
+    return await puppeteer.launch({
+      args: commonArgs,
+      headless: true,
+    });
+  } catch (err) {
+    // If standard bundled browser is missing, try candidate system paths
+    for (const execPath of candidatePaths) {
+      try {
+        return await puppeteer.launch({
+          executablePath: execPath,
+          args: commonArgs,
           headless: true,
-        }
-      : {
-          headless: true,
-        }
-  );
+        });
+      } catch {
+        // try next
+      }
+    }
+    throw err;
+  }
 }
 
 /**

@@ -12,7 +12,6 @@ export const fetchLeetCodeData = async (username) => {
           username
           profile {
             realName
-            avatar
             ranking
             reputation
             userAvatar
@@ -29,18 +28,23 @@ export const fetchLeetCodeData = async (username) => {
               submissions
             }
           }
-          contestBadges {
-            name
-            badge
-          }
         }
       }
     `;
 
-    const response = await axios.post("https://leetcode.com/graphql", { query }, {
-      headers: { "Content-Type": "application/json" },
-      timeout: 5000,
-    });
+    const response = await axios.post(
+      "https://leetcode.com/graphql",
+      { query },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Referer: "https://leetcode.com",
+        },
+        timeout: 8000,
+      }
+    );
 
     const userData = response.data.data?.matchedUser;
 

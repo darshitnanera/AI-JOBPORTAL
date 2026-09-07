@@ -53,11 +53,34 @@ const resumePdfSchema = z.object({
 });
 
 const launchBrowser = async () => {
-  return puppeteer.launch(
-    process.env.NODE_ENV === "production"
-      ? { args: ["--no-sandbox", "--disable-setuid-sandbox"] }
-      : {},
-  );
+  const commonArgs = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"];
+  const candidatePaths = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+  ].filter(Boolean);
+
+  try {
+    return await puppeteer.launch({
+      args: commonArgs,
+      headless: true,
+    });
+  } catch (err) {
+    for (const execPath of candidatePaths) {
+      try {
+        return await puppeteer.launch({
+          executablePath: execPath,
+          args: commonArgs,
+          headless: true,
+        });
+      } catch {
+        // try next
+      }
+    }
+    throw err;
+  }
 };
 
 export async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
