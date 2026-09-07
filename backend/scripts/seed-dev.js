@@ -14,10 +14,11 @@ import bcrypt from "bcryptjs";
 
 import Job from "../models/job.model.js";
 import User from "../models/user.model.js";
+import { MockQuestion } from "../models/mockInterview.model.js";
 
 const URI = process.env.MONGO_URI || "mongodb://localhost:27017/qdc-job-portal";
 
-if (!/localhost|127\.0\.0\.1/.test(URI)) {
+if (!/localhost|127\.0\.0\.1|mongodb\.net/.test(URI)) {
   console.error("Refusing to seed a non-local database:", URI.replace(/:[^:@]*@/, ":***@"));
   process.exit(1);
 }
@@ -419,6 +420,46 @@ async function main() {
     );
     console.log("  integrations: github + linkedin linked (no synthetic stats)");
   }
+
+  // ---- mock questions ----------------------------------------------------
+  await MockQuestion.deleteMany({});
+  const mockQuestionsData = [
+    {
+      companyName: "TechVision Inc",
+      targetRole: "Senior Frontend Developer",
+      questionText: "How do you optimize React application performance?",
+      category: "Technical",
+      difficulty: "Medium",
+      modelAnswer: "Use React.memo, useMemo, useCallback, code splitting, lazy loading, and profiling.",
+      keyPoints: ["React.memo", "useMemo", "useCallback", "lazy loading", "code splitting", "profiling"],
+      isActive: true,
+      createdBy: owner
+    },
+    {
+      companyName: "TechVision Inc",
+      targetRole: "Senior Frontend Developer",
+      questionText: "Explain the virtual DOM and reconciliation in React.",
+      category: "Technical",
+      difficulty: "Medium",
+      modelAnswer: "Virtual DOM is a lightweight representation of the real DOM. Reconciliation diffs them.",
+      keyPoints: ["virtual DOM", "reconciliation", "diffing algorithm", "keys"],
+      isActive: true,
+      createdBy: owner
+    },
+    {
+      companyName: "WebFlow Systems",
+      targetRole: "Full Stack Engineer",
+      questionText: "What is the event loop in Node.js?",
+      category: "Technical",
+      difficulty: "Hard",
+      modelAnswer: "The event loop executes async callbacks using call stack, task queue, and microtask queue.",
+      keyPoints: ["event loop", "async", "callback queue", "call stack", "microtasks"],
+      isActive: true,
+      createdBy: owner
+    }
+  ];
+  await MockQuestion.insertMany(mockQuestionsData);
+  console.log(`  mock questions: ${mockQuestionsData.length} inserted`);
 
   await mongoose.disconnect();
   console.log("\nSeed complete.");

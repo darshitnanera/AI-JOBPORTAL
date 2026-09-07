@@ -23,6 +23,7 @@ import messageRouter from "./routes/message.routes.js";
 import integrationsRouter from "./routes/integrations.routes.js";
 import adminRouter from "./routes/admin.routes.js";
 import mockInterviewRouter, { examResultsRouter } from "./routes/mockInterview.routes.js";
+import chatbotRouter from "./routes/chatbot.routes.js";
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -139,6 +140,7 @@ app.use("/api/messages", messageRouter);
 app.use("/api/integrations", integrationsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/mock-interview", mockInterviewRouter);
+app.use("/api/chatbot", chatbotRouter);
 // Alias so the Candidate Dashboard's GET /api/exam/results resolves.
 app.use("/api/exam", examResultsRouter);
 

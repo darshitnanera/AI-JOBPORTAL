@@ -1,28 +1,16 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 
 const getGeminiClient = () => {
-  const apiKey =
-    process.env.GOOGLE_GENAI_API_KEY ||
-    process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY (or GOOGLE_GENAI_API_KEY) is required for Gemini API");
+    throw new Error("GEMINI_API_KEY is required for Gemini API");
   }
 
   return new GoogleGenAI({ apiKey });
 };
 
-const getClaudeClient = () => {
-  const apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
-  if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY (or CLAUDE_API_KEY) is required for Claude API");
-  }
-
-  return new Anthropic({ apiKey });
-};
-
 /**
- * Extract structured information from resume text using Gemini API (with Claude fallback)
+ * Extract structured information from resume text using Gemini API
  * @param {string} resumeText - Raw resume content
  * @returns {Promise<Object>} Extracted resume data with skills, experience, education, projects, certifications
  */
@@ -30,6 +18,8 @@ export async function extractResumeData(resumeText) {
   if (!resumeText || typeof resumeText !== "string" || resumeText.trim().length === 0) {
     throw new Error("Resume text is required and must be non-empty");
   }
+
+  const ai = getGeminiClient();
 
   const prompt = `Extract all professional information from this resume and return it as valid JSON with the following exact structure (use empty arrays for missing sections):
 
@@ -77,67 +67,18 @@ export async function extractResumeData(resumeText) {
 Resume Text:
 ${resumeText}
 
-Return ONLY valid JSON.`;
+Return ONLY the raw JSON object. Do not include markdown code block formatting (like \`\`\`json).`;
 
-  const provider = (process.env.AI_PROVIDER || "gemini").toLowerCase();
-
-  // Try Gemini with fallback models if temporary load spikes occur
-  if (provider === "gemini" || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY) {
-    const gemini = getGeminiClient();
-    const modelsToTry = [
-      process.env.GEMINI_MODEL || "gemini-3.6-flash",
-      "gemini-3.7-flash",
-      "gemini-3.5-flash",
-      "gemini-flash-latest",
-    ];
-
-    for (const modelName of modelsToTry) {
-      try {
-        const response = await gemini.models.generateContent({
-          model: modelName,
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          },
-        });
-
-        const text = response.text || "{}";
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-          throw new Error("Failed to extract JSON from Gemini response");
-        }
-
-        const data = JSON.parse(jsonMatch[0]);
-        return {
-          success: true,
-          data,
-        };
-      } catch (geminiError) {
-        console.warn(`Gemini extraction failed on model ${modelName}:`, geminiError.message);
-      }
-    }
-  }
-
-  // Fallback to Claude if configured
   try {
-    const client = getClaudeClient();
-    const model = process.env.CLAUDE_MODEL || "claude-3-5-sonnet-20240620";
-
-    const response = await client.messages.create({
-      model: model,
-      max_tokens: 4000,
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+    const response = await ai.models.generateContent({
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      contents: prompt,
     });
 
-    const text = response.content[0].text;
+    const text = response.text;
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error("Failed to extract JSON from Claude response");
+      throw new Error("Failed to extract JSON from Gemini response");
     }
 
     const data = JSON.parse(jsonMatch[0]);
@@ -146,7 +87,7 @@ Return ONLY valid JSON.`;
       data,
     };
   } catch (error) {
-    throw new Error(`AI extraction failed: ${error.message}`);
+    throw new Error(`Gemini extraction failed: ${error.message}`);
   }
 }
 

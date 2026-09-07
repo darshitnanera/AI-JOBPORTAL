@@ -1,12 +1,9 @@
-import { createRequire } from "node:module";
 import InterviewReport from "../models/interviewReport.model.js";
 import {
   generateInterviewReport,
   generateResumePdf,
 } from "../services/aiSuggestion.service.js";
-
-const require = createRequire(import.meta.url);
-const pdfParse = require("pdf-parse");
+import { PDFParse } from "pdf-parse";
 
 export const generateInterviewReportController = async (req, res) => {
   try {
@@ -21,7 +18,8 @@ export const generateInterviewReportController = async (req, res) => {
 
     let resumeText = "";
     if (req.file) {
-      const parsed = await pdfParse(req.file.buffer);
+      const parser = new PDFParse({ data: req.file.buffer });
+      const parsed = await parser.getText();
       resumeText = parsed.text || "";
     }
 

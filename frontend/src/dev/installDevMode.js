@@ -70,6 +70,16 @@ function usingDevToken() {
   }
 }
 
+function getRoleFromMockToken() {
+  try {
+    const token = localStorage.getItem(TOKEN_KEY) || "";
+    if (token.startsWith("dev-mock-token.")) {
+      return token.split(".")[1]; // e.g. "candidate", "recruiter", "admin"
+    }
+  } catch {}
+  return null;
+}
+
 /** Should this failed response fall back to a fixture? */
 function shouldFallBack(status, unreachable) {
   if (unreachable) return true;
@@ -455,7 +465,22 @@ export async function installDevMode() {
   if (installed) return;
   installed = true;
 
-  await applyDevQueryParam();
+  const queryApplied = await applyDevQueryParam();
+
+  // If we didn't apply a query param, but we are currently using a mock token,
+  // upgrade to a real backend session so writes and real protected endpoints work.
+  if (!queryApplied && usingDevToken()) {
+    const role = getRoleFromMockToken();
+    const persona = personaFor(role);
+    if (persona) {
+      const real = await tryRealLogin(persona);
+      if (real) {
+        persist(real);
+        banner(`Automatically upgraded mock session to real session for ${real.email}`);
+      }
+    }
+  }
+
   patchFetch();
   await patchAxios();
 

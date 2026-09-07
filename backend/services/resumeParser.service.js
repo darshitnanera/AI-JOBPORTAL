@@ -8,8 +8,9 @@ import { extractResumeData, validateResumeData } from "./claudeApi.service.js";
  */
 export async function extractTextFromPDF(pdfBuffer) {
   try {
-    const pdfData = await PDFParse(pdfBuffer);
-    return pdfData.text;
+    const parser = new PDFParse({ data: pdfBuffer });
+    const pdfData = await parser.getText();
+    return pdfData.text || "";
   } catch (error) {
     throw new Error(`Failed to parse PDF: ${error.message}`);
   }

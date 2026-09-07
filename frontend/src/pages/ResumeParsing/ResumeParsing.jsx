@@ -30,7 +30,6 @@ const API_ORIGIN = (
 const API_URL = `${API_ORIGIN}/api`;
 
 const TABS = [
-  { id: "upload", label: "Upload & extract", icon: Upload },
   { id: "review", label: "Review & edit", icon: FileText },
   { id: "versions", label: "Versions", icon: History },
 ];
@@ -165,7 +164,7 @@ const ResumeParsing = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [activeTab, setActiveTab] = useState("upload");
+  const [activeTab, setActiveTab] = useState("review");
 
   const flashSuccess = (message) => {
     setSuccess(message);
@@ -212,10 +211,10 @@ const ResumeParsing = () => {
       if (response.ok) {
         const data = await response.json();
         adoptResume(data.parsedResume || null);
-        setActiveTab(hasResumeContent(data.parsedResume) ? "review" : "upload");
+        setActiveTab("review");
       } else if (response.status === 404) {
         adoptResume(null);
-        setActiveTab("upload");
+        setActiveTab("review");
       } else {
         setLoadError("We couldn't load your saved resume.");
       }
@@ -736,14 +735,6 @@ const ResumeParsing = () => {
                       >
                         <PenLine size={16} />
                         Start from scratch
-                      </button>
-                      <button
-                        type="button"
-                        className={SECONDARY_BTN}
-                        onClick={() => setActiveTab("upload")}
-                      >
-                        <Upload size={16} />
-                        Upload a resume
                       </button>
                     </div>
                   </div>

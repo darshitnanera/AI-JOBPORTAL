@@ -1,70 +1,41 @@
-﻿# Dependencies
 node_modules/
-**/node_modules/
-
-# Logs
-logs/
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment files
 .env
-.env.*
-!.env.example
-**/.env
-**/.env.*
-!**/.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Build and generated output
-build/
 dist/
+build/
 out/
-coverage/
+
 .vite/
-.parcel-cache/
 .cache/
-.next/
-.nuxt/
 
-# Local runtime and temp files
-tmp/
-temp/
-uploads/
-**/uploads/
-backend/.dev-mongo-data/
-**/.dev-mongo-data/
-*.db
-*.sqlite
-*.sqlite3
+logs/
+*.log
 
-# Editor and OS files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.sublime-project
-*.sublime-workspace
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Model/data assets and archives
-*.pkl
-*.joblib
-*.h5
-*.ckpt
-*.pth
-*.zip
-*.tar
-*.tar.gz
-*.rar
-*.7z
-best_resume_company_model.pkl
-resume.zip
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Misc
-*.local
-*.tmp
+tmp/
+temp/
+
+coverage/
+
+uploads/
+.dev-mongo-data/
+backend/.dev-mongo-data/
+*.zip
+*.log

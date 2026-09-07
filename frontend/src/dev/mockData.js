@@ -506,9 +506,39 @@ export function resolveMock(pathname, method = "GET") {
       savedInterviewQuestions: [],
       savedRoleQuestions: [],
     });
-  if (p === "/api/company") return ok({ success: true, companies: [] });
-  if (/^\/api\/interview/.test(p)) return ok({ success: true, data: [] });
-  if (/^\/api\/ai-suggestion/.test(p)) return ok({ success: true, reports: [] });
+  // ── mock-interview ──────────────────────────────────────────────────────
+  if (p === "/api/mock-interview/options")
+    return ok({
+      success: true,
+      companies: [
+        {
+          companyName: "TechVision Inc",
+          questionCount: 2,
+          roles: [
+            { targetRole: "Frontend Developer", questionCount: 1 },
+            { targetRole: "Full Stack Engineer", questionCount: 1 },
+          ],
+        },
+        {
+          companyName: "WebFlow Systems",
+          questionCount: 1,
+          roles: [
+            { targetRole: "Full Stack Engineer", questionCount: 1 },
+          ],
+        },
+      ],
+      roles: [
+        { targetRole: "Frontend Developer", questionCount: 1 },
+        { targetRole: "Full Stack Engineer", questionCount: 2 },
+      ],
+    });
+
+  if (p === "/api/mock-interview/attempts")
+    return ok({ success: true, attempts: [] });
+
+  if (/^\/api\/mock-interview\/questions/.test(p))
+    return ok({ success: true, questions: [] });
 
   return null;
 }
+

@@ -4,9 +4,11 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import puppeteer from "puppeteer";
 
 const getAI = () => {
-  const apiKey = process.env.GOOGLE_GENAI_API_KEY;
+  const apiKey =
+    process.env.GOOGLE_GENAI_API_KEY ||
+    process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GOOGLE_GENAI_API_KEY is required for Interview AI");
+    throw new Error("GOOGLE_GENAI_API_KEY (or GEMINI_API_KEY) is required for Interview AI");
   }
 
   return new GoogleGenAI({
@@ -65,17 +67,33 @@ Self Description: ${selfDescription}
 Job Description: ${jobDescription}`;
 
   const ai = getAI();
+  const modelsToTry = [
+    process.env.GEMINI_MODEL || "gemini-3.6-flash",
+    "gemini-3.7-flash",
+    "gemini-3.5-flash",
+    "gemini-flash-latest",
+  ];
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: zodToJsonSchema(interviewReportSchema),
-    },
-  });
+  let lastError = null;
+  for (const model of modelsToTry) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: zodToJsonSchema(interviewReportSchema),
+        },
+      });
 
-  return JSON.parse(response.text);
+      return JSON.parse(response.text);
+    } catch (err) {
+      lastError = err;
+      console.warn(`[AI Suggestion] Model ${model} failed: ${err.message}. Retrying next available model...`);
+    }
+  }
+
+  throw lastError || new Error("All AI models are currently busy. Please try again shortly.");
 }
 
 async function generatePdfFromHtml(htmlContent) {
@@ -108,8 +126,9 @@ The resume should be tailored for the job description and should be ATS friendly
 
   const ai = getAI();
 
+  const modelName = process.env.GEMINI_MODEL || "gemini-3.6-flash";
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: modelName,
     contents: prompt,
     config: {
       responseMimeType: "application/json",

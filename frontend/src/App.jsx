@@ -26,6 +26,7 @@ import CandidateDashboard from "./pages/CandidateDashboard/CandidateDashboard";
 import ResumeParsing from "./pages/ResumeParsing/ResumeParsing";
 import RecruiterInterviewManager from "./pages/RecruiterInterviewManager/RecruiterInterviewManager";
 import MockInterview from "./pages/MockInterview/MockInterview";
+import Chatbot from "./components/Chatbot/Chatbot";
 import "./styles/globals.css";
 const ScrollToTopOnRouteChange = () => {
   const { pathname } = useLocation();
@@ -218,6 +219,7 @@ const App = () => {
           </Routes>
 
           <ScrollToTopButton />
+          <Chatbot />
         </>
       </InterviewProvider>
     </AuthProvider>
