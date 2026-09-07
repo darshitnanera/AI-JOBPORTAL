@@ -32,10 +32,13 @@ export default function ProtectedRoute({
   // `userType`, and candidates appear as both "candidate" and "user".
   // Compare against whichever is present so a guard never rejects a valid
   // session just because of which field the login flow happened to write.
-  const actual = session.userType || session.role;
-  const matches = (expected) =>
-    actual === expected ||
-    (expected === "candidate" && (actual === "user" || actual === "candidate"));
+  const actual = String(session.userType || session.role || "").toLowerCase();
+  const matches = (expected) => {
+    const exp = String(expected || "").toLowerCase();
+    if (actual === exp) return true;
+    if (exp === "candidate" && (actual === "user" || actual === "candidate")) return true;
+    return false;
+  };
 
   if (requiredRole && !matches(requiredRole)) {
     return <Navigate to="/" replace />;

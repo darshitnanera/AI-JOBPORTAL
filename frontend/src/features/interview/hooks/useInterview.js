@@ -72,19 +72,17 @@ export const useInterview = () => {
 
   const getReports = useCallback(async () => {
     setLoading(true);
-    setError("");
     try {
       const response = await getAllInterviewReports();
       setReports(response.interviewReports || []);
       return response.interviewReports || [];
-    } catch (err) {
+    } catch {
       setReports([]);
-      setError(readableError(err, "We couldn't load your saved plans."));
       return [];
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError, setReports]);
+  }, [setLoading, setReports]);
 
   const getResumePdf = async (reportId) => {
     setLoading(true);

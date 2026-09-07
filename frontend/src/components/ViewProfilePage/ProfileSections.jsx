@@ -112,6 +112,9 @@ export const BadgeList = ({ items, tone = "brand" }) => {
 /* ------------------------- Composite sections --------------------- */
 
 export const PersonalDetailsSection = ({ profile, isRecruiterView }) => {
+  const isCandidate =
+    !profile.role || profile.role === "candidate" || profile.role === "user";
+
   const courseLine = [profile.course, profile.specialization, profile.courseDuration]
     .filter(Boolean)
     .join(" · ");
@@ -120,18 +123,26 @@ export const PersonalDetailsSection = ({ profile, isRecruiterView }) => {
     <SectionCard
       icon={UserRound}
       title="Profile details"
-      description="Core information on this candidate profile."
+      description={
+        isCandidate
+          ? "Core information on this candidate profile."
+          : `Account information for this ${profile.roleLabel || "user"}.`
+      }
     >
       <dl className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
         <Field label="Full name" value={profile.name} />
         <Field label="Gender" value={profile.gender} />
         <Field label="User type" value={profile.roleLabel} />
-        <Field label="College" value={profile.college} />
-        <Field label="Location" value={profile.location} />
-        <Field label="Preferred domain" value={profile.preferredDomain} />
-        <div className="sm:col-span-2">
-          <Field label="Course, specialization & duration" value={courseLine} />
-        </div>
+        {profile.location ? <Field label="Location" value={profile.location} /> : null}
+        {isCandidate && (
+          <>
+            <Field label="College" value={profile.college} />
+            <Field label="Preferred domain" value={profile.preferredDomain} />
+            <div className="sm:col-span-2">
+              <Field label="Course, specialization & duration" value={courseLine} />
+            </div>
+          </>
+        )}
         {!isRecruiterView ? (
           <>
             <Field label="Email" value={profile.email} />

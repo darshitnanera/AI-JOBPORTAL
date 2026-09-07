@@ -92,7 +92,7 @@ const ProfileHeaderCard = ({
               <p className="mt-1.5 break-words text-base text-slate-600 dark:text-slate-300">
                 {profile.headline}
               </p>
-            ) : profile.targetRoles.length > 0 ? (
+            ) : (!profile.role || profile.role === "candidate" || profile.role === "user") && profile.targetRoles.length > 0 ? (
               <p className="mt-1.5 break-words text-base text-slate-600 dark:text-slate-300">
                 Targeting {profile.targetRoles.slice(0, 3).join(", ")}
               </p>
@@ -100,7 +100,9 @@ const ProfileHeaderCard = ({
 
             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
               <MetaItem icon={MapPin}>{profile.location}</MetaItem>
-              <MetaItem icon={GraduationCap}>{profile.college}</MetaItem>
+              {(!profile.role || profile.role === "candidate" || profile.role === "user") && (
+                <MetaItem icon={GraduationCap}>{profile.college}</MetaItem>
+              )}
               {!isRecruiterView ? (
                 <>
                   <MetaItem icon={Mail}>{profile.email}</MetaItem>

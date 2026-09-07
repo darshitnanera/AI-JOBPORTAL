@@ -16,6 +16,7 @@ import {
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import API from "../../utils/api";
 import { saveSession } from "../../utils/authStorage";
+import { useAuth } from "../../context/AuthContext";
 
 const STORAGE_KEY = "jobportal_user";
 
@@ -94,6 +95,7 @@ const secondaryButton =
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login: authLogin } = useAuth();
 
   // Detect role from URL query if present (e.g. /login?role=recruiter)
   const searchParams = new URLSearchParams(location.search);
@@ -158,6 +160,7 @@ const LoginPage = () => {
       // navbar poll and the dashboards read. Writing only the user blob here
       // was leaving those callers sending `Bearer null`.
       saveSession(userData);
+      authLogin(userData);
 
       setToast({
         message:
@@ -170,7 +173,8 @@ const LoginPage = () => {
       setPassword("");
 
       setTimeout(() => {
-        navigate("/");
+        const destination = location.state?.from || "/";
+        navigate(destination, { replace: true });
       }, 700);
     } catch (err) {
       setToast({

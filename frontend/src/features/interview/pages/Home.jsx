@@ -46,7 +46,7 @@ const isSectionEmpty = (resume, key) => {
 
 const Home = () => {
   const navigate = useNavigate();
-  const { loading, error, generateReport, reports, getReports } = useInterview();
+  const { loading, error, setError, generateReport, reports, getReports } = useInterview();
 
   const [jobDescription, setJobDescription] = useState("");
   const [selfDescription, setSelfDescription] = useState("");
@@ -103,9 +103,10 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    if (setError) setError("");
     loadJobRecs();
     loadParsedResume();
-  }, [loadJobRecs, loadParsedResume]);
+  }, [loadJobRecs, loadParsedResume, setError]);
 
   const retryJobRecs = () => {
     setJobRecsStatus("loading");

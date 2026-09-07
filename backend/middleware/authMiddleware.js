@@ -29,7 +29,30 @@ export const authMiddleware = (req, res, next) => {
 
 export const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You don't have permission",
+      });
+    }
+
+    const userRole = (req.user.role || "").toLowerCase();
+    const userType = (req.user.userType || "").toLowerCase();
+
+    const hasPermission = roles.some((role) => {
+      const target = role.toLowerCase();
+      if (target === "candidate") {
+        return (
+          userRole === "candidate" ||
+          userRole === "user" ||
+          userType === "candidate" ||
+          userType === "user"
+        );
+      }
+      return userRole === target || userType === target;
+    });
+
+    if (!hasPermission) {
       return res.status(403).json({
         success: false,
         message: "Access denied. You don't have permission",

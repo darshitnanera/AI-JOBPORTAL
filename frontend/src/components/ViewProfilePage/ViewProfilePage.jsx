@@ -199,6 +199,11 @@ const ViewProfilePage = () => {
     [rawUser, integrations],
   );
 
+  const isCandidateProfile =
+    !profile.role ||
+    profile.role === "candidate" ||
+    profile.role === "user";
+
   /* ------------------------- Actions ------------------------------ */
 
   const handleDownloadResume = useCallback(() => {
@@ -321,42 +326,51 @@ const ViewProfilePage = () => {
         onDownloadResume={handleDownloadResume}
       />
 
-      {/* Recruiters see developer activity first — right under the header. */}
-      {isRecruiterView ? developerActivity : null}
+      {/* Recruiters see developer activity first — right under the header (only for candidate profiles) */}
+      {isCandidateProfile && isRecruiterView ? developerActivity : null}
 
-      <div className="grid min-w-0 gap-6 lg:grid-cols-3">
-        <div className="min-w-0 space-y-6 lg:col-span-2">
+      <div className={`grid min-w-0 gap-6 ${isCandidateProfile ? "lg:grid-cols-3" : ""}`}>
+        <div className={`min-w-0 space-y-6 ${isCandidateProfile ? "lg:col-span-2" : "w-full"}`}>
           <PersonalDetailsSection
             profile={profile}
             isRecruiterView={isRecruiterView}
           />
-          <EducationSection profile={profile} />
-          <ProjectsSection profile={profile} />
-          <CertificationsSection profile={profile} />
-          <AchievementsSection profile={profile} />
+          {isCandidateProfile && (
+            <>
+              <EducationSection profile={profile} />
+              <ProjectsSection profile={profile} />
+              <CertificationsSection profile={profile} />
+              <AchievementsSection profile={profile} />
+            </>
+          )}
+          {!isCandidateProfile && !isRecruiterView && (
+            <ContactSection profile={profile} />
+          )}
         </div>
 
-        <aside className="min-w-0 space-y-6">
-          <SkillsSection
-            profile={profile}
-            onEdit={isRecruiterView ? null : openEdit}
-          />
-          <TargetRolesSection
-            profile={profile}
-            onEdit={isRecruiterView ? null : openEdit}
-          />
-          <ResumeSection
-            profile={profile}
-            isRecruiterView={isRecruiterView}
-            onDownload={handleDownloadResume}
-            onEdit={isRecruiterView ? null : openEdit}
-          />
-          {!isRecruiterView ? <ContactSection profile={profile} /> : null}
-        </aside>
+        {isCandidateProfile && (
+          <aside className="min-w-0 space-y-6">
+            <SkillsSection
+              profile={profile}
+              onEdit={isRecruiterView ? null : openEdit}
+            />
+            <TargetRolesSection
+              profile={profile}
+              onEdit={isRecruiterView ? null : openEdit}
+            />
+            <ResumeSection
+              profile={profile}
+              isRecruiterView={isRecruiterView}
+              onDownload={handleDownloadResume}
+              onEdit={isRecruiterView ? null : openEdit}
+            />
+            {!isRecruiterView ? <ContactSection profile={profile} /> : null}
+          </aside>
+        )}
       </div>
 
-      {/* Owner sees developer activity plus the connect UI below the fold. */}
-      {!isRecruiterView ? (
+      {/* Owner sees developer activity plus the connect UI below the fold (only for candidates) */}
+      {isCandidateProfile && !isRecruiterView ? (
         <>
           {developerActivity}
           <IntegrationButtons
@@ -380,6 +394,7 @@ const ViewProfilePage = () => {
           saving={saving}
           onCancel={() => setEditing(false)}
           onSave={handleSave}
+          showResume={isCandidateProfile}
         />
       ) : null}
 

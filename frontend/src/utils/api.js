@@ -63,4 +63,12 @@ API.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+// ─── Response Interceptor ───────────────────────────────────────────────────
+API.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
 export default API;

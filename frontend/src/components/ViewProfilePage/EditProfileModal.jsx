@@ -34,7 +34,13 @@ const resumeFileName = (resume) => {
   return "Resume";
 };
 
-const EditProfileModal = ({ initial, saving, onCancel, onSave }) => {
+const EditProfileModal = ({
+  initial,
+  saving,
+  onCancel,
+  onSave,
+  showResume = true,
+}) => {
   const [form, setForm] = useState({
     name: initial.name || "",
     email: initial.email || "",
@@ -154,42 +160,44 @@ const EditProfileModal = ({ initial, saving, onCancel, onSave }) => {
             />
           </div>
 
-          <div>
-            <span className={LABEL_CLASS}>Resume (PDF or Word)</span>
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:border-brand-400 hover:bg-brand-50/60 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300 dark:hover:border-brand-500/40">
-                <Upload size={16} className="shrink-0" />
-                <span className="truncate">
-                  {form.resume ? resumeFileName(form.resume) : "Choose a file…"}
-                </span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) update("resume", file);
-                  }}
-                />
-              </label>
-              {form.resume ? (
-                <button
-                  type="button"
-                  onClick={() => update("resume", null)}
-                  title="Remove selected resume"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-danger-500/40 bg-danger-50 px-4 py-2.5 text-sm font-semibold text-danger-700 transition-all hover:bg-danger-500 hover:text-white active:scale-[0.98] dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-500 dark:hover:bg-danger-600 dark:hover:text-white"
-                >
-                  <Trash2 size={16} />
-                </button>
+          {showResume && (
+            <div>
+              <span className={LABEL_CLASS}>Resume (PDF or Word)</span>
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:border-brand-400 hover:bg-brand-50/60 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300 dark:hover:border-brand-500/40">
+                  <Upload size={16} className="shrink-0" />
+                  <span className="truncate">
+                    {form.resume ? resumeFileName(form.resume) : "Choose a file…"}
+                  </span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) update("resume", file);
+                    }}
+                  />
+                </label>
+                {form.resume ? (
+                  <button
+                    type="button"
+                    onClick={() => update("resume", null)}
+                    title="Remove selected resume"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-danger-500/40 bg-danger-50 px-4 py-2.5 text-sm font-semibold text-danger-700 transition-all hover:bg-danger-500 hover:text-white active:scale-[0.98] dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-500 dark:hover:bg-danger-600 dark:hover:text-white"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                ) : null}
+              </div>
+              {form.resume instanceof File ? (
+                <p className="mt-2 flex items-center gap-1.5 text-xs text-success-700 dark:text-success-500">
+                  <FileText size={13} />
+                  Ready to upload: {form.resume.name}
+                </p>
               ) : null}
             </div>
-            {form.resume instanceof File ? (
-              <p className="mt-2 flex items-center gap-1.5 text-xs text-success-700 dark:text-success-500">
-                <FileText size={13} />
-                Ready to upload: {form.resume.name}
-              </p>
-            ) : null}
-          </div>
+          )}
 
           <div className="flex flex-wrap justify-end gap-3 pt-2">
             <button
